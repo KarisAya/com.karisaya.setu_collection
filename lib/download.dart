@@ -1,43 +1,59 @@
-import 'dart:async';
+import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
-class DownloadTask {
-  DownloadTask({required this.url, required this.name});
-  double _progress = 0.0;
-  int status = 0; // 0 未开始，1 正在下载， 2 已完成 3 暂停
-  Timer? timer;
+Dio dio = Dio();
 
-  final String name;
+class DownloadManager {
+  late Directory? dir;
+  late String? a;
+  List<DownloadTask> tasks = [];
+  DownloadManager() {
+    init();
+    // _tasks = cache
+  }
+
+  void init() async {
+    dir = await getExternalStorageDirectory();
+  }
+
+  void download(String url, String name) {
+    if (dir == null) return;
+    print(a);
+    var task = DownloadTask(url: url, name: name, path: dir!.path);
+    tasks.add(task);
+    task.start();
+  }
+}
+
+DownloadManager downloadManager = DownloadManager();
+
+typedef ProgressCallback = void Function(int current, int total);
+
+class DownloadTask {
+  DownloadTask({required this.url, required this.name, required this.path});
+  int status = 0; // 0 未开始，1 正在下载， 2 已完成， 3 暂停
   final String url;
+  final String name;
+  final String path;
+  String get savePath => "$path/$name";
+  ProgressCallback? onReceiveProgress;
 
   void start() {
     status = 1;
-    timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
-      _progress += 1;
-      if (_progress >= 100) {
-        timer.cancel();
-        status = 2;
-      }
+    dio.download(url, savePath, onReceiveProgress: (int current, int total) {
+      if (onReceiveProgress != null) onReceiveProgress!(current, total);
+      if (current >= total) status = 2;
     });
   }
 
   void stop() {
     status = 3;
-    timer?.cancel();
   }
 
   void cancel() {
     status = status == 2 ? 2 : 0;
-    timer?.cancel();
   }
-}
-
-List<DownloadTask> _tasks = [];
-
-void download(String url, String name) {
-  var task = DownloadTask(url: url, name: name);
-  _tasks.add(task);
-  task.start();
 }
 
 class DownloadProgress extends StatefulWidget {
@@ -50,20 +66,10 @@ class DownloadProgress extends StatefulWidget {
 
 class _DownloadProgressState extends State<DownloadProgress> {
   double progress = 0.0;
-  Timer? timer;
 
-  void listenProgress() {
-    if (timer?.isActive == true) {
-      return;
-    }
-    timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (widget.task.status != 1) {
-        timer.cancel();
-        return;
-      }
-      setState(() {
-        progress = widget.task._progress;
-      });
+  void listenProgress(int current, int total) {
+    setState(() {
+      progress = current / total;
     });
   }
 
@@ -75,15 +81,16 @@ class _DownloadProgressState extends State<DownloadProgress> {
     switch (widget.task.status) {
       case (0):
         {
+          widget.task.onReceiveProgress = null;
           icon = const Icon(Icons.file_download);
           subtitle = const Text('未开始');
           onPressed = () {};
         }
       case (1):
         {
-          listenProgress();
+          widget.task.onReceiveProgress = listenProgress;
           icon = const Icon(Icons.pause);
-          subtitle = LinearProgressIndicator(value: progress / 100);
+          subtitle = LinearProgressIndicator(value: progress);
           onPressed = () {
             setState(() {
               widget.task.stop();
@@ -92,11 +99,13 @@ class _DownloadProgressState extends State<DownloadProgress> {
         }
       case (2):
         {
+          widget.task.onReceiveProgress = null;
           icon = const Icon(Icons.download_done);
           subtitle = const Text('下载完成');
         }
       case (3):
         {
+          widget.task.onReceiveProgress = null;
           icon = const Icon(Icons.play_arrow);
           subtitle = const Text('暂停');
           onPressed = () {
@@ -107,6 +116,7 @@ class _DownloadProgressState extends State<DownloadProgress> {
         }
       default:
         {
+          widget.task.onReceiveProgress = null;
           icon = const Icon(Icons.delete);
           subtitle = const Text('未知状态');
         }
@@ -126,7 +136,7 @@ class _DownloadProgressState extends State<DownloadProgress> {
 
   @override
   void dispose() {
-    timer?.cancel();
+    widget.task.onReceiveProgress = null;
     super.dispose();
   }
 }
@@ -148,7 +158,7 @@ class _DownloadQueuePageState extends State<DownloadQueuePage> {
           IconButton(
               onPressed: () {
                 setState(() {
-                  _tasks.removeWhere(
+                  downloadManager.tasks.removeWhere(
                       (task) => task.status == 0 || task.status == 2);
                 });
               },
@@ -156,15 +166,15 @@ class _DownloadQueuePageState extends State<DownloadQueuePage> {
         ],
       ),
       body: ListView.builder(
-        itemCount: _tasks.length,
+        itemCount: downloadManager.tasks.length,
         itemBuilder: (BuildContext context, int index) {
-          final task = _tasks[index];
+          final task = downloadManager.tasks[index];
           return Dismissible(
             key: ValueKey(task),
             direction: DismissDirection.startToEnd,
             onDismissed: (direction) {
               task.cancel();
-              _tasks.removeWhere((task) => task.status == 0);
+              downloadManager.tasks.removeWhere((task) => task.status == 0);
             },
             background: Container(
               color: Colors.red,

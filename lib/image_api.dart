@@ -1,16 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
+
 import 'package:logger/logger.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import "download.dart";
 
 Logger logger = Logger();
-Dio dio = Dio();
+
+class ImageUrl {
+  String? original;
+  String? regular;
+  final String url;
+  ImageUrl(this.url, {this.original, this.regular});
+  String get highestQuality {
+    if (original != null) {
+      return original!;
+    } else if (regular != null) {
+      return regular!;
+    } else {
+      return url;
+    }
+  }
+}
 
 class CurrentStatus {
   CurrentStatus();
-  List<String> imageUrls = [];
+  List<ImageUrl> imageUrls = [];
   int currentIndex = 0;
   int maxIndex = 0;
   bool error = false;
@@ -29,6 +44,7 @@ abstract class ImageAPIState<T extends StatefulWidget> extends State<T> {
   CurrentStatus status;
   CarouselController carouselController = CarouselController();
   bool _isLoading = false;
+  TextEditingController pageTEC = TextEditingController();
 
   void onPageChanged(int index) {
     setState(() {
@@ -42,61 +58,17 @@ abstract class ImageAPIState<T extends StatefulWidget> extends State<T> {
   @override
   Widget build(BuildContext context) {
     if (status.imageUrls.length > status.currentIndex) {
-      CarouselSlider(
-        carouselController: carouselController,
-        options: CarouselOptions(
-          autoPlay: false,
-          enlargeCenterPage: true,
-          aspectRatio: 1.0,
-          height: MediaQuery.of(context).size.height * 0.8,
-          initialPage: status.currentIndex,
-          enableInfiniteScroll: false,
-          onPageChanged: (index, reason) {
-            onPageChanged(index);
-          },
-        ),
-        items: status.imageUrls.map((url) {
-          return Builder(
-            builder: (BuildContext context) {
-              return GestureDetector(
-                  onLongPress: () {
-                    downloadFile(url);
-                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content:
-                            Text('已将图片${status.currentIndex + 1}添加到下载队列！')));
-                  },
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        fullscreenDialog: true,
-                        builder: (context) => ImagePreviewPage(api: this),
-                      ),
-                    );
-                  },
-                  child: Center(
-                    child: CachedNetworkImage(
-                      imageUrl: url,
-                      placeholder: (context, url) =>
-                          const CircularProgressIndicator(),
-                      errorWidget: (context, url, error) =>
-                          const Icon(Icons.error),
-                    ),
-                  ));
-            },
-          );
-        }).toList(),
-      );
       return Column(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           CarouselSlider(
             carouselController: carouselController,
             options: CarouselOptions(
               autoPlay: false,
               enlargeCenterPage: true,
+              viewportFraction: 0.6,
               aspectRatio: 1.0,
-              height: MediaQuery.of(context).size.height * 0.8,
+              height: MediaQuery.of(context).size.width,
               initialPage: status.currentIndex,
               enableInfiniteScroll: false,
               onPageChanged: (index, reason) {
@@ -107,40 +79,61 @@ abstract class ImageAPIState<T extends StatefulWidget> extends State<T> {
               return Builder(
                 builder: (BuildContext context) {
                   return GestureDetector(
-                      onLongPress: () {
-                        downloadFile(url);
-                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text(
-                                '已将图片${status.currentIndex + 1}添加到下载队列！')));
-                      },
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            fullscreenDialog: true,
-                            builder: (context) => ImagePreviewPage(api: this),
-                          ),
-                        );
-                      },
-                      child: Center(
-                        child: CachedNetworkImage(
-                          imageUrl: url,
-                          placeholder: (context, url) =>
-                              const CircularProgressIndicator(),
-                          errorWidget: (context, url, error) =>
-                              const Icon(Icons.error),
+                    onLongPress: () {
+                      downloadFile(url.highestQuality);
+                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content:
+                              Text('图片 ${status.currentIndex + 1} 已加入下载队列！')));
+                    },
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          fullscreenDialog: true,
+                          builder: (context) => ImagePreviewPage(api: this),
                         ),
-                      ));
+                      );
+                    },
+                    child: Center(
+                      child: CachedNetworkImage(
+                        imageUrl: url.url,
+                        placeholder: (context, url) =>
+                            const CircularProgressIndicator(),
+                        errorWidget: (context, url, error) =>
+                            const Icon(Icons.error),
+                      ),
+                    ),
+                  );
                 },
               );
             }).toList(),
           ),
-          Text((status.currentIndex + 1).toString(),
-              style: const TextStyle(
-                color: Colors.grey, // 文本颜色
-                fontSize: 24,
-              )),
+          GestureDetector(
+            child: Text((status.currentIndex + 1).toString(),
+                style: const TextStyle(
+                  color: Colors.grey, // 文本颜色
+                  fontSize: 24,
+                )),
+            onLongPress: () async {
+              String? result = await showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return buildAlertDialog(
+                      context,
+                      pageTEC,
+                      title: const Text("输入跳转的页面"),
+                    );
+                  });
+              if (result == null) return;
+              int? numInt = int.tryParse(result);
+              if (numInt == null) return;
+              if (numInt < 0 || numInt > status.imageUrls.length) return;
+              setState(() {
+                carouselController.animateToPage(numInt - 1);
+              });
+            },
+          )
         ],
       );
     } else if (status.error) {
@@ -170,11 +163,7 @@ abstract class ImageAPIState<T extends StatefulWidget> extends State<T> {
   }
 
   downloadFile(String fileUrl) {
-    download(fileUrl, "image.jpg");
-    // var dir = await getExternalStorageDirectory();
-    // if (dir == null) return;
-    // String filePath = '${dir.path}/Pictures/setu collection/image.jpg';
-    // await dio.download(fileUrl, filePath);
+    downloadManager.download(fileUrl, "${fileUrl.hashCode}.jpg");
   }
 
   int coldDown = 0;
@@ -216,25 +205,36 @@ class ImagePreviewPage extends StatelessWidget {
       },
       controller: PageController(initialPage: api.status.currentIndex),
       itemBuilder: (BuildContext context, int index) {
-        return Center(
-            child: CachedNetworkImage(
-          imageUrl: api.status.imageUrls[index],
-          placeholder: (context, url) => const CircularProgressIndicator(),
-          errorWidget: (context, url, error) => const Icon(Icons.error),
-        ));
+        return GestureDetector(
+          child: Center(
+              child: CachedNetworkImage(
+            imageUrl: api.status.imageUrls[index].url,
+            placeholder: (context, url) => const CircularProgressIndicator(),
+            errorWidget: (context, url, error) => const Icon(Icons.error),
+          )),
+          onLongPress: () {
+            api.downloadFile(api.status.imageUrls[index].highestQuality);
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('图片 ${index + 1} 已加入下载队列！')));
+          },
+        );
       },
     );
   }
 }
 
 AlertDialog buildAlertDialog(
-        BuildContext context, TextEditingController textEditingController,
-        {Widget? title}) =>
+  BuildContext context,
+  TextEditingController textEditingController, {
+  Widget? title,
+  String hintText = '在此输入...',
+}) =>
     AlertDialog(
       title: title,
       content: TextField(
         controller: textEditingController,
-        decoration: const InputDecoration(hintText: '在此输入...'),
+        decoration: InputDecoration(hintText: hintText),
       ),
       actions: <Widget>[
         TextButton(

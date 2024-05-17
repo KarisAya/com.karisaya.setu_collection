@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import "api/lolicon.dart";
 import "api/anosu.dart";
 import "api/mirlkoi.dart";
 import "download.dart";
-import 'package:cached_network_image/cached_network_image.dart';
+import "test.dart";
 
 void main() => runApp(const MyApp());
 
@@ -155,7 +156,7 @@ class _MyHomePageState extends State<MyHomePage> {
       case 'Lolicon API':
         return ImageCarouselPage2();
       case 'Test':
-        return ImageCarouselPage2();
+        return MyHomePage2();
 
       default:
         return const Center(
