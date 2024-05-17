@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import "test.dart";
+import "api/lolicon.dart";
 import "api/anosu.dart";
 import "api/mirlkoi.dart";
 import "download.dart";
+import 'package:cached_network_image/cached_network_image.dart';
 
 void main() => runApp(const MyApp());
 
@@ -32,7 +33,6 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   String title = "Anosu";
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -70,8 +70,8 @@ class _MyHomePageState extends State<MyHomePage> {
             ListTile(
                 title: const Text('Anosu API'),
                 trailing: const CircleAvatar(
-                  backgroundImage:
-                      NetworkImage("https://docs.anosu.top/favicon.ico"),
+                  backgroundImage: CachedNetworkImageProvider(
+                      "https://docs.anosu.top/favicon.ico"),
                   backgroundColor: Colors.transparent,
                 ),
                 onTap: () {
@@ -80,7 +80,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ListTile(
                 title: const Text('MirlKoi API'),
                 trailing: const CircleAvatar(
-                  backgroundImage: NetworkImage(
+                  backgroundImage: CachedNetworkImageProvider(
                       "https://dev.iw233.cn/css/ec43126fgy1h4604r4bk1j21801801kx.jpg"),
                   backgroundColor: Colors.transparent,
                 ),
@@ -90,7 +90,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ListTile(
                 title: const Text('Lolicon API'),
                 trailing: const CircleAvatar(
-                  backgroundImage: NetworkImage(
+                  backgroundImage: CachedNetworkImageProvider(
                       "https://avatars.githubusercontent.com/u/24877906?v=4"),
                   backgroundColor: Colors.transparent,
                 ),

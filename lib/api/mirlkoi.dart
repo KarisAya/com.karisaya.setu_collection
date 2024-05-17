@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
-import "../image_preview.dart";
+import "../image_api.dart";
 
 Dio dio = Dio();
 

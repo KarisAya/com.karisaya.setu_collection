@@ -25,6 +25,11 @@ class DownloadTask {
     status = 3;
     timer?.cancel();
   }
+
+  void cancel() {
+    status = status == 2 ? 2 : 0;
+    timer?.cancel();
+  }
 }
 
 List<DownloadTask> _tasks = [];
@@ -47,16 +52,18 @@ class _DownloadProgressState extends State<DownloadProgress> {
   double progress = 0.0;
   Timer? timer;
 
-  @override
-  void initState() {
-    super.initState();
+  void listenProgress() {
+    if (timer?.isActive == true) {
+      return;
+    }
     timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (widget.task.status != 1) {
+        timer.cancel();
+        return;
+      }
       setState(() {
         progress = widget.task._progress;
       });
-      if (widget.task.status != 1) {
-        timer.cancel();
-      }
     });
   }
 
@@ -74,6 +81,7 @@ class _DownloadProgressState extends State<DownloadProgress> {
         }
       case (1):
         {
+          listenProgress();
           icon = const Icon(Icons.pause);
           subtitle = LinearProgressIndicator(value: progress / 100);
           onPressed = () {
@@ -91,7 +99,6 @@ class _DownloadProgressState extends State<DownloadProgress> {
         {
           icon = const Icon(Icons.play_arrow);
           subtitle = const Text('暂停');
-
           onPressed = () {
             setState(() {
               widget.task.start();
@@ -111,6 +118,9 @@ class _DownloadProgressState extends State<DownloadProgress> {
         icon: icon,
         onPressed: onPressed,
       ),
+      onLongPress: () {
+        print("xxx");
+      },
     );
   }
 
@@ -137,16 +147,33 @@ class _DownloadQueuePageState extends State<DownloadQueuePage> {
         actions: [
           IconButton(
               onPressed: () {
-                _tasks.removeWhere(
-                    (task) => task.status == 0 || task.status == 2);
+                setState(() {
+                  _tasks.removeWhere(
+                      (task) => task.status == 0 || task.status == 2);
+                });
               },
               icon: const Text("清空列表"))
         ],
       ),
       body: ListView.builder(
         itemCount: _tasks.length,
-        itemBuilder: (context, index) {
-          return DownloadProgress(task: _tasks[index]);
+        itemBuilder: (BuildContext context, int index) {
+          final task = _tasks[index];
+          return Dismissible(
+            key: ValueKey(task),
+            direction: DismissDirection.startToEnd,
+            onDismissed: (direction) {
+              task.cancel();
+              _tasks.removeWhere((task) => task.status == 0);
+            },
+            background: Container(
+              color: Colors.red,
+              alignment: Alignment.centerLeft,
+              padding: const EdgeInsets.only(left: 20.0),
+              child: const Icon(Icons.delete),
+            ),
+            child: DownloadProgress(task: task),
+          );
         },
       ),
     );

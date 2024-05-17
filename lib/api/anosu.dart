@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
-import "../image_preview.dart";
+import "../image_api.dart";
 
 Dio dio = Dio();
 
@@ -16,12 +16,8 @@ class Anosu extends StatefulWidget {
 class _AnosuState extends ImageAPIState<Anosu> {
   _AnosuState() : super(api: "Anosu API", status: status);
   @override
-  getImageUrls() async {
-    return [
-      'https://via.placeholder.com/600x800/2ECC71/FFFFFF',
-      'https://via.placeholder.com/600x400/2ECC71/FFFFFF',
-      'https://via.placeholder.com/600x400/2ECC71/FFFFFF',
-      'https://via.placeholder.com/800x300/2ECC71/FFFFFF',
-    ];
+  Future<List<String>> getImageUrls() async {
+    var resp = await dio.get("https://image.anosu.top/pixiv/json?num=5");
+    return (resp.data as List).map((item) => item["url"] as String).toList();
   }
 }

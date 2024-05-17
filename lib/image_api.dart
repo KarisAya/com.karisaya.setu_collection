@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import "download.dart";
 
 Logger logger = Logger();
@@ -12,6 +13,7 @@ class CurrentStatus {
   CurrentStatus();
   List<String> imageUrls = [];
   int currentIndex = 0;
+  bool error = false;
 }
 
 abstract class ImageAPIState<T extends StatefulWidget> extends State<T> {
@@ -20,9 +22,36 @@ abstract class ImageAPIState<T extends StatefulWidget> extends State<T> {
   CurrentStatus status;
   bool _isLoading = false;
 
+  void onPageChanged(int index) {
+    setState(() {
+      status.currentIndex = index;
+      if (index == status.imageUrls.length - 1 && !_isLoading) {
+        getData();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (status.imageUrls.length > status.currentIndex) {
+    if (status.error) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              '哎呀！页面崩溃了...',
+              style: TextStyle(fontSize: 24, color: Colors.white),
+            ),
+            SizedBox(height: 20),
+            Text(
+              '请稍后重试',
+              style: TextStyle(fontSize: 18, color: Colors.white),
+            ),
+            SizedBox(height: 30),
+          ],
+        ),
+      );
+    } else if (status.imageUrls.length > status.currentIndex) {
       return Column(
         children: [
           CarouselSlider(
@@ -33,12 +62,7 @@ abstract class ImageAPIState<T extends StatefulWidget> extends State<T> {
               initialPage: status.currentIndex,
               enableInfiniteScroll: false,
               onPageChanged: (index, reason) {
-                setState(() {
-                  status.currentIndex = index;
-                  if (index == status.imageUrls.length - 1 && !_isLoading) {
-                    getData();
-                  }
-                });
+                onPageChanged(index);
               },
             ),
             items: status.imageUrls.map((url) {
@@ -56,10 +80,7 @@ abstract class ImageAPIState<T extends StatefulWidget> extends State<T> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => ImagePreviewPage(
-                            imageUrls: status.imageUrls,
-                            initialIndex: status.currentIndex,
-                          ),
+                          builder: (context) => ImagePreviewPage(api: this),
                         ),
                       );
                     },
@@ -72,7 +93,7 @@ abstract class ImageAPIState<T extends StatefulWidget> extends State<T> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8.0),
                         image: DecorationImage(
-                          image: NetworkImage(url),
+                          image: CachedNetworkImageProvider(url),
                           fit: BoxFit.contain,
                         ),
                       ),
@@ -103,18 +124,23 @@ abstract class ImageAPIState<T extends StatefulWidget> extends State<T> {
     // await dio.download(fileUrl, filePath);
   }
 
+  int coldDown = 0;
   getData() async {
     setState(() {
       _isLoading = true;
     });
+    if (coldDown > DateTime.now().millisecondsSinceEpoch) {
+      throw StateError('请求速度过快，请稍后再试');
+    }
+    coldDown = DateTime.now().millisecondsSinceEpoch + 1000;
     try {
       logger.i("从$api获取图片列表..");
       status.imageUrls.addAll(await getImageUrls());
-
-      // var resp = await dio.get("https://image.anosu.top/pixiv/json?num=30");
-      // imageUrls.addAll(resp.data.map((item) => item["url"]));
     } catch (e) {
-      logger.w(e);
+      if (status.imageUrls.isEmpty) {
+        status.error = true;
+      }
+      logger.e(e);
     }
     setState(() {
       _isLoading = false;
@@ -125,27 +151,21 @@ abstract class ImageAPIState<T extends StatefulWidget> extends State<T> {
 }
 
 class ImagePreviewPage extends StatelessWidget {
-  final List<String> imageUrls;
-  final int initialIndex;
+  final ImageAPIState api;
 
-  const ImagePreviewPage(
-      {super.key, required this.imageUrls, required this.initialIndex});
+  const ImagePreviewPage({super.key, required this.api});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Image Preview'),
-      ),
-      body: PageView.builder(
-        itemCount: imageUrls.length,
-        controller: PageController(initialPage: initialIndex),
-        itemBuilder: (BuildContext context, int index) {
-          return Center(
-            child: Image.network(imageUrls[index]),
-          );
-        },
-      ),
+    return PageView.builder(
+      onPageChanged: (int index) {
+        api.onPageChanged(index);
+      },
+      controller: PageController(initialPage: api.status.currentIndex),
+      itemBuilder: (BuildContext context, int index) {
+        return Image(
+            image: CachedNetworkImageProvider(api.status.imageUrls[index]));
+      },
     );
   }
 }
