@@ -32,7 +32,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  String title = "Anosu";
+  String title = "Anosu API";
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,7 +40,15 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(title),
         backgroundColor: Theme.of(context).colorScheme.primary,
         actions: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.settings))
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => _getSetting(title),
+              );
+            },
+          ),
         ],
       ),
       drawer: Drawer(
@@ -50,7 +58,8 @@ class _MyHomePageState extends State<MyHomePage> {
             const DrawerHeader(
               decoration: BoxDecoration(
                   image: DecorationImage(
-                image: NetworkImage("https://moe.jitsu.top/img/?sort=pc"),
+                image: CachedNetworkImageProvider(
+                    "https://moe.jitsu.top/img/?sort=pc"),
                 fit: BoxFit.cover,
               )),
               child: Center(
@@ -75,7 +84,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   backgroundColor: Colors.transparent,
                 ),
                 onTap: () {
-                  _changeBody('Anosu');
+                  _changeBody('Anosu API');
                 }),
             ListTile(
                 title: const Text('MirlKoi API'),
@@ -139,10 +148,28 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget _getBody(String bodyName) {
     title = bodyName;
     switch (bodyName) {
-      case 'Anosu':
+      case 'Anosu API':
         return const Anosu();
       case 'MirlKoi API':
         return const MirlKoi();
+      case 'Lolicon API':
+        return ImageCarouselPage2();
+      case 'Test':
+        return ImageCarouselPage2();
+
+      default:
+        return const Center(
+          child: Text('未知页面'),
+        );
+    }
+  }
+
+  Widget _getSetting(String bodyName) {
+    switch (bodyName) {
+      case 'Anosu API':
+        return const AnosuSetting();
+      case 'MirlKoi API':
+        return const AnosuSetting();
       case 'Lolicon API':
         return ImageCarouselPage2();
       case 'Test':
