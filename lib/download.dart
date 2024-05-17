@@ -40,7 +40,7 @@ class DownloadProgress extends StatefulWidget {
   final DownloadTask task;
 
   @override
-  _DownloadProgressState createState() => _DownloadProgressState();
+  State<DownloadProgress> createState() => _DownloadProgressState();
 }
 
 class _DownloadProgressState extends State<DownloadProgress> {
@@ -125,7 +125,7 @@ class DownloadQueuePage extends StatefulWidget {
   const DownloadQueuePage({super.key});
 
   @override
-  _DownloadQueuePageState createState() => _DownloadQueuePageState();
+  State<DownloadQueuePage> createState() => _DownloadQueuePageState();
 }
 
 class _DownloadQueuePageState extends State<DownloadQueuePage> {

@@ -30,9 +30,6 @@ class MyHomePage extends StatefulWidget {
   State<StatefulWidget> createState() => _MyHomePageState();
 }
 
-const anosu = Anosu();
-const mirlkoi = MirlKoi();
-
 class _MyHomePageState extends State<MyHomePage> {
   String title = "Anosu";
 
@@ -143,10 +140,9 @@ class _MyHomePageState extends State<MyHomePage> {
     title = bodyName;
     switch (bodyName) {
       case 'Anosu':
-        return anosu;
-
+        return const Anosu();
       case 'MirlKoi API':
-        return mirlkoi;
+        return const MirlKoi();
       case 'Lolicon API':
         return ImageCarouselPage2();
       case 'Test':
