@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:gallery_saver/gallery_saver.dart';
+import 'package:path_provider/path_provider.dart';
 
 Dio dio = Dio();
 
@@ -43,7 +45,11 @@ class DownloadTask {
     status = 1;
     dio.download(url, savePath, onReceiveProgress: (int current, int total) {
       if (onReceiveProgress != null) onReceiveProgress!(current, total);
-      if (current >= total) status = 2;
+      if (current >= total) {
+        status = 2;
+        GallerySaver.saveImage(savePath);
+      }
+      ;
     });
   }
 
