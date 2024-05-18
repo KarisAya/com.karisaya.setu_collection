@@ -1,10 +1,14 @@
 import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:gallery_saver/gallery_saver.dart';
 
 Dio dio = Dio();
+
+MethodChannel methodChannel = const MethodChannel(
+  'com.karisaya.setu_collection/get_public_pictures_dir',
+);
 
 class DownloadManager {
   late Directory? dir;
@@ -21,7 +25,6 @@ class DownloadManager {
 
   void download(String url, String name) {
     if (dir == null) return;
-    print(a);
     var task = DownloadTask(url: url, name: name, path: dir!.path);
     tasks.add(task);
     task.start();
@@ -56,7 +59,6 @@ class DownloadTask {
       if (onReceiveProgress != null) onReceiveProgress!(current, total);
       if (current >= total) {
         status = 2;
-        GallerySaver.saveImage(savePath);
       }
       ;
     });
@@ -96,7 +98,6 @@ class _DownloadProgressState extends State<DownloadProgress> {
     switch (widget.task.status) {
       case (0):
         {
-          widget.task.onReceiveProgress = null;
           icon = const Icon(Icons.file_download);
           subtitle = const Text('未开始');
           onPressed = () {};
@@ -114,13 +115,11 @@ class _DownloadProgressState extends State<DownloadProgress> {
         }
       case (2):
         {
-          widget.task.onReceiveProgress = null;
           icon = const Icon(Icons.download_done);
           subtitle = const Text('下载完成');
         }
       case (3):
         {
-          widget.task.onReceiveProgress = null;
           icon = const Icon(Icons.play_arrow);
           subtitle = const Text('暂停');
           onPressed = () {
