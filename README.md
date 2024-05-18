@@ -1,6 +1,6 @@
-# untitled
+# setu_collection
 
-A new Flutter project.
+setu-collection app版
 
 ## Getting Started
 
