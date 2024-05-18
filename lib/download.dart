@@ -1,17 +1,28 @@
-import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 
 Dio dio = Dio();
 
-MethodChannel methodChannel = const MethodChannel(
-  'com.karisaya.setu_collection/get_public_pictures_dir',
+MethodChannel _channel = const MethodChannel(
+  'com.karisaya.setu_collection/get_public_dir',
 );
 
+Future<String?> get picturesPath async {
+  try {
+    final String result = await _channel.invokeMethod('getPicturesPath');
+    return result;
+  } catch (e) {
+    throw PlatformException(
+      code: 'UNAVAILABLE',
+      message: 'Failed to get Pictures directory',
+      details: e,
+    );
+  }
+}
+
 class DownloadManager {
-  late Directory? dir;
+  late String? path;
   late String? a;
   List<DownloadTask> tasks = [];
   DownloadManager() {
@@ -20,12 +31,13 @@ class DownloadManager {
   }
 
   void init() async {
-    dir = await getExternalStorageDirectory();
+    path = await picturesPath;
   }
 
   void download(String url, String name) {
-    if (dir == null) return;
-    var task = DownloadTask(url: url, name: name, path: dir!.path);
+    if (path == null) return;
+    print(path);
+    var task = DownloadTask(url: url, name: name, path: path!);
     tasks.add(task);
     task.start();
   }
