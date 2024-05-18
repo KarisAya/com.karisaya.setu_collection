@@ -1,4 +1,4 @@
-package com.karisaya.test.untitled
+package com.example.untitled
 
 import io.flutter.embedding.android.FlutterActivity
 

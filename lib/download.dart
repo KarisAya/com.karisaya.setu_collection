@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:gallery_saver/gallery_saver.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:gallery_saver/gallery_saver.dart';
 
 Dio dio = Dio();
 
@@ -34,7 +34,16 @@ typedef ProgressCallback = void Function(int current, int total);
 
 class DownloadTask {
   DownloadTask({required this.url, required this.name, required this.path});
-  int status = 0; // 0 未开始，1 正在下载， 2 已完成， 3 暂停
+
+  /// 0 未开始
+  ///
+  /// 1 正在下载
+  ///
+  /// 2 已完成
+  ///
+  /// 3 暂停
+  int status = 0;
+
   final String url;
   final String name;
   final String path;
