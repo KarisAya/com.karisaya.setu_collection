@@ -58,6 +58,7 @@ class _AnosuSettingState extends State<AnosuSetting> {
           children: [
             ListTile(
               title: Text('请求图片数量: ${status.num}'),
+              subtitle: const Text("1-30"),
               trailing: IconButton(
                 icon: const Icon(Icons.edit),
                 onPressed: () async {
@@ -93,7 +94,8 @@ class _AnosuSettingState extends State<AnosuSetting> {
                         return buildAlertDialog(
                           context,
                           tagTEC,
-                          title: const Text("请求图片数量"),
+                          title: const Text("请求关键字"),
+                          hintText: "使用|隔开参数",
                         );
                       });
                   setState(() {

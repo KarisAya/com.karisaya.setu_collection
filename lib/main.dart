@@ -4,7 +4,11 @@ import "api/lolicon.dart";
 import "api/anosu.dart";
 import "api/mirlkoi.dart";
 import "download.dart";
-import "test.dart";
+
+// late final MemoryImage drawerImage;
+// late final MemoryImage iconAnosu;
+// late final MemoryImage iconMirlKoi;
+// late final MemoryImage iconLolicon;
 
 void main() => runApp(const MyApp());
 
@@ -107,12 +111,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 onTap: () {
                   _changeBody('Lolicon API');
                 }),
-            ListTile(
-                title: const Text('Test'),
-                trailing: const Icon(Icons.image),
-                onTap: () {
-                  _changeBody('Test');
-                }),
             const Divider(),
             ListTile(
                 title: const Text("下载队列"),
@@ -154,10 +152,7 @@ class _MyHomePageState extends State<MyHomePage> {
       case 'MirlKoi API':
         return const MirlKoi();
       case 'Lolicon API':
-        return ImageCarouselPage2();
-      case 'Test':
-        return MyHomePage2();
-
+        return const Lolicon();
       default:
         return const Center(
           child: Text('未知页面'),
@@ -170,12 +165,9 @@ class _MyHomePageState extends State<MyHomePage> {
       case 'Anosu API':
         return const AnosuSetting();
       case 'MirlKoi API':
-        return const AnosuSetting();
+        return const MirlKoiSetting();
       case 'Lolicon API':
-        return ImageCarouselPage2();
-      case 'Test':
-        return ImageCarouselPage2();
-
+        return const LoliconSetting();
       default:
         return const Center(
           child: Text('未知页面'),

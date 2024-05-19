@@ -1,9 +1,13 @@
 plugins {
     id "com.android.application"
     id "kotlin-android"
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id "dev.flutter.flutter-gradle-plugin"
 }
+
+// dependencies {
+//     implementation 'androidx.appcompat:appcompat:1.6.1'
+//     implementation 'io.flutter:flutter_embedding_release'
+// }
 
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file("local.properties")
