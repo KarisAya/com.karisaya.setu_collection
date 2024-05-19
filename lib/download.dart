@@ -72,7 +72,6 @@ class DownloadTask {
       if (current >= total) {
         status = 2;
       }
-      ;
     });
   }
 

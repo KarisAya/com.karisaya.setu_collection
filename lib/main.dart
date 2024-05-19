@@ -1,43 +1,92 @@
-import 'dart:io';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
+import "package:flutter/widgets.dart";
+import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import "api/lolicon.dart";
 import "api/anosu.dart";
 import "api/mirlkoi.dart";
 import "download.dart";
-
-void main() => runApp(const MyApp());
+import "setting.dart";
 
 const title = "Setu Collection";
+void main() async {
+  var settings = await Settings.load();
+  runApp(MultiProvider(
+    providers: [
+      ChangeNotifierProvider(create: (context) => AppSettings(settings)),
+    ],
+    child: MyApp(settings),
+  ));
+}
+
+class AppSettings with ChangeNotifier {
+  AppSettings(this.settings);
+  final Settings settings;
+
+  void setSeedColor(Color color) {
+    settings.seedColor = color;
+    notifyListeners();
+  }
+}
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
+  const MyApp(this.settings, {super.key});
+  final Settings settings;
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: title,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(),
-    );
+    return Consumer<AppSettings>(builder: (context, appSettings, child) {
+      return MaterialApp(
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: settings.seedColor),
+          useMaterial3: true,
+        ),
+        home: MyHomePage(settings),
+      );
+    });
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
+  const MyHomePage(this.settings, {super.key});
+  final Settings settings;
   @override
-  State<StatefulWidget> createState() => _MyHomePageState();
+  State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  String title = "Anosu API";
+  _MyHomePageState();
+  late String title;
+
+  @override
+  void initState() {
+    title = widget.settings.api;
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
+    DrawerHeader drawerHeader = widget.settings.drawerImage
+        ? DrawerHeader(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                  image: NetworkImage(widget.settings.drawerImageUrl),
+                  fit: BoxFit.cover),
+            ),
+            child: Container(),
+          )
+        : DrawerHeader(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            child: const Center(
+              child: Text("随机涩图 API 合集",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                  )),
+            ),
+          );
+
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
@@ -58,53 +107,34 @@ class _MyHomePageState extends State<MyHomePage> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(
-                  image: DecorationImage(
-                image: NetworkImage("https://moe.jitsu.top/img/?sort=pc"),
-                fit: BoxFit.cover,
-              )),
-              child: Center(
-                  child: Text("动漫图API合集",
-                      style: TextStyle(
-                        color: Colors.white, // 文本颜色
-                        fontSize: 24,
-                        shadows: <Shadow>[
-                          Shadow(
-                            offset: Offset(1, 1), // 阴影偏移量
-                            blurRadius: 3.0, // 模糊半径
-                            color: Colors.black, // 阴影颜色
-                          ),
-                        ],
-                      ))),
-            ),
+            drawerHeader,
             ListTile(
-                title: const Text('Anosu API'),
-                trailing: const CircleAvatar(
+                leading: const CircleAvatar(
                   backgroundImage: CachedNetworkImageProvider(
-                      "https://docs.anosu.top/favicon.ico"),
+                      "https://cdn.jitsu.top/img/home/favicon.ico"),
                   backgroundColor: Colors.transparent,
                 ),
+                trailing: const Text('Anosu API'),
                 onTap: () {
                   _changeBody('Anosu API');
                 }),
             ListTile(
-                title: const Text('MirlKoi API'),
-                trailing: const CircleAvatar(
+                leading: const CircleAvatar(
                   backgroundImage: CachedNetworkImageProvider(
                       "https://dev.iw233.cn/css/ec43126fgy1h4604r4bk1j21801801kx.jpg"),
                   backgroundColor: Colors.transparent,
                 ),
+                trailing: const Text('MirlKoi API'),
                 onTap: () {
                   _changeBody('MirlKoi API');
                 }),
             ListTile(
-                title: const Text('Lolicon API'),
-                trailing: const CircleAvatar(
+                leading: const CircleAvatar(
                   backgroundImage: CachedNetworkImageProvider(
                       "https://avatars.githubusercontent.com/u/24877906?v=4"),
                   backgroundColor: Colors.transparent,
                 ),
+                trailing: const Text('Lolicon API'),
                 onTap: () {
                   _changeBody('Lolicon API');
                 }),
@@ -122,14 +152,23 @@ class _MyHomePageState extends State<MyHomePage> {
                         builder: (context) => const DownloadQueuePage()),
                   );
                 }),
-            const ListTile(
-              title: Text("设置"),
-              trailing: Icon(Icons.settings),
-            )
+            ListTile(
+                title: const Text("设置"),
+                trailing: const Icon(Icons.settings),
+                onTap: () {
+                  // 关闭Drawer
+                  Navigator.pop(context);
+                  // 导航到新页面
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const SettingPage()),
+                  );
+                })
           ],
         ),
       ),
-      body: SingleChildScrollView(child: _getBody(title)),
+      body: _getBody(title),
     );
   }
 
@@ -170,5 +209,120 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Text('未知页面'),
         );
     }
+  }
+}
+
+class SettingPage extends StatefulWidget {
+  const SettingPage({super.key});
+  @override
+  State<SettingPage> createState() => _SettingPageState();
+}
+
+class _SettingPageState extends State<SettingPage> {
+  @override
+  Widget build(BuildContext context) {
+    Container colorCard(Color color) => Container(
+          width: 30.0,
+          height: 30.0,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+          ),
+        );
+
+    return Scaffold(
+        appBar: AppBar(
+          title: const Text('设置'),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+        ),
+        body: Consumer<AppSettings>(builder: (context, appSettings, child) {
+          return ListView(children: [
+            ListTile(
+              title: const Text("主题色"),
+              trailing: PopupMenuButton<Color>(
+                onSelected: (selectedValue) {
+                  appSettings.setSeedColor(selectedValue);
+                  appSettings.settings.save();
+                },
+                itemBuilder: (context) {
+                  return [
+                    PopupMenuItem(
+                      value: Colors.grey,
+                      child: colorCard(Colors.grey),
+                    ),
+                    PopupMenuItem<Color>(
+                      value: Colors.blue,
+                      child: colorCard(Colors.blue),
+                    ),
+                    PopupMenuItem(
+                      value: Colors.orange,
+                      child: colorCard(Colors.orange),
+                    ),
+                    PopupMenuItem(
+                      value: Colors.green,
+                      child: colorCard(Colors.green),
+                    ),
+                    PopupMenuItem(
+                      value: Colors.black,
+                      child: colorCard(Colors.black),
+                    ),
+                    PopupMenuItem(
+                      value: Colors.deepPurple,
+                      child: colorCard(Colors.deepPurple),
+                    ),
+                  ];
+                },
+                icon: Container(
+                  width: 30.0,
+                  height: 30.0,
+                  decoration: BoxDecoration(
+                    color: appSettings.settings.seedColor,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            ),
+            ListTile(
+              title: const Text("首页API"),
+              trailing: PopupMenuButton<String>(
+                  onSelected: (selectedValue) {
+                    setState(() {
+                      appSettings.settings.api = selectedValue;
+                      appSettings.settings.save();
+                    });
+                  },
+                  icon: Text(appSettings.settings.api),
+                  itemBuilder: (context) {
+                    return [
+                      const PopupMenuItem(
+                        value: "Anosu API",
+                        child: Text("Anosu API"),
+                      ),
+                      const PopupMenuItem(
+                        value: "MirlKoi API",
+                        child: Text("MirlKoi API"),
+                      ),
+                      const PopupMenuItem(
+                        value: "Lolicon API",
+                        child: Text("Lolicon API"),
+                      ),
+                    ];
+                  }),
+            ),
+            SwitchListTile(
+              title: const Text('开启侧边栏头图'),
+              value: appSettings.settings.drawerImage,
+              onChanged: (bool flag) {
+                setState(() {
+                  appSettings.settings.drawerImage = flag;
+                  appSettings.settings.save();
+                });
+              },
+              activeColor: Theme.of(context).colorScheme.primary,
+              inactiveThumbColor: Colors.grey,
+              inactiveTrackColor: Colors.grey[300],
+            ),
+          ]);
+        }));
   }
 }

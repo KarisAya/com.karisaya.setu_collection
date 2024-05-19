@@ -219,6 +219,9 @@ class ImagePreviewPage extends StatelessWidget {
             placeholder: (context, url) => const CircularProgressIndicator(),
             errorWidget: (context, url, error) => const Icon(Icons.error),
           )),
+          onTap: () {
+            Navigator.pop(context);
+          },
           onLongPress: () {
             api.downloadFile(api.status.imageUrls[index].highestQuality);
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
