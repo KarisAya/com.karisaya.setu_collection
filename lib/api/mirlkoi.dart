@@ -86,11 +86,10 @@ class _MirlKoiSettingState extends State<MirlKoiSetting> {
               subtitle: Text(status.tag),
               trailing: PopupMenuButton<String>(
                 onSelected: (selectedValue) {
+                  if (selectedValue == status.tag) return;
                   setState(() {
-                    if (selectedValue == status.tag) return;
+                    status.preUpdate();
                     status.tag = selectedValue;
-                    status.imageUrls =
-                        status.imageUrls.sublist(0, status.maxIndex + 1);
                   });
                 },
                 itemBuilder: (context) {

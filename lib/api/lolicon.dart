@@ -104,9 +104,8 @@ class _LoliconSettingState extends State<LoliconSetting> {
                         );
                       });
                   setState(() {
+                    status.preUpdate();
                     status.tag = tag.split(" ");
-                    status.imageUrls =
-                        status.imageUrls.sublist(0, status.maxIndex + 1);
                   });
                 },
               ),
@@ -116,8 +115,7 @@ class _LoliconSettingState extends State<LoliconSetting> {
               value: status.r18,
               onChanged: (bool flag) {
                 setState(() {
-                  status.imageUrls =
-                      status.imageUrls.sublist(0, status.maxIndex + 1);
+                  status.preUpdate();
                   status.r18 = flag;
                 });
               },

@@ -1,14 +1,12 @@
+import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import "api/lolicon.dart";
 import "api/anosu.dart";
 import "api/mirlkoi.dart";
 import "download.dart";
-
-// late final MemoryImage drawerImage;
-// late final MemoryImage iconAnosu;
-// late final MemoryImage iconMirlKoi;
-// late final MemoryImage iconLolicon;
 
 void main() => runApp(const MyApp());
 
@@ -63,8 +61,7 @@ class _MyHomePageState extends State<MyHomePage> {
             const DrawerHeader(
               decoration: BoxDecoration(
                   image: DecorationImage(
-                image: CachedNetworkImageProvider(
-                    "https://moe.jitsu.top/img/?sort=pc"),
+                image: NetworkImage("https://moe.jitsu.top/img/?sort=pc"),
                 fit: BoxFit.cover,
               )),
               child: Center(
@@ -132,7 +129,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-      body: _getBody(title),
+      body: SingleChildScrollView(child: _getBody(title)),
     );
   }
 

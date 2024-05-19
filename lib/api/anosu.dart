@@ -99,8 +99,7 @@ class _AnosuSettingState extends State<AnosuSetting> {
                         );
                       });
                   setState(() {
-                    status.imageUrls =
-                        status.imageUrls.sublist(0, status.maxIndex + 1);
+                    status.preUpdate();
                   });
                 },
               ),
@@ -110,8 +109,7 @@ class _AnosuSettingState extends State<AnosuSetting> {
               value: status.r18,
               onChanged: (bool flag) {
                 setState(() {
-                  status.imageUrls =
-                      status.imageUrls.sublist(0, status.maxIndex + 1);
+                  status.preUpdate();
                   status.r18 = flag;
                 });
               },

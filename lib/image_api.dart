@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:logger/logger.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -35,6 +34,10 @@ class CurrentStatus {
     if (index > maxIndex) {
       maxIndex = index;
     }
+  }
+
+  void preUpdate() {
+    imageUrls = imageUrls.sublist(0, maxIndex + 2);
   }
 }
 
@@ -123,6 +126,7 @@ abstract class ImageAPIState<T extends StatefulWidget> extends State<T> {
                       context,
                       pageTEC,
                       title: const Text("输入跳转的页面"),
+                      hintText: "1-${status.imageUrls.length}",
                     );
                   });
               if (result == null) return;
@@ -137,20 +141,23 @@ abstract class ImageAPIState<T extends StatefulWidget> extends State<T> {
         ],
       );
     } else if (status.error) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
+            const Text(
               '哎呀！页面崩溃了...',
               style: TextStyle(fontSize: 24, color: Colors.black),
             ),
-            SizedBox(height: 20),
-            Text(
-              '请稍后重试',
-              style: TextStyle(fontSize: 18, color: Colors.black),
+            ElevatedButton(
+              onPressed: () {
+                getData();
+                setState(() {
+                  status.error = false;
+                });
+              },
+              child: const Text('点击重试'),
             ),
-            SizedBox(height: 30),
           ],
         ),
       );
@@ -175,10 +182,7 @@ abstract class ImageAPIState<T extends StatefulWidget> extends State<T> {
     coldDown = DateTime.now().millisecondsSinceEpoch + 1000;
     try {
       logger.i("从$api获取图片列表..");
-      var imageUrls = await getImageUrls();
-      setState(() {
-        status.imageUrls.addAll(imageUrls);
-      });
+      status.imageUrls.addAll(await getImageUrls());
     } catch (e) {
       if (status.imageUrls.isEmpty) {
         status.error = true;
@@ -186,6 +190,9 @@ abstract class ImageAPIState<T extends StatefulWidget> extends State<T> {
       logger.e(e);
     }
     _isLoading = false;
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   getImageUrls();
