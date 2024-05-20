@@ -15,33 +15,44 @@ class AnosuStatus extends CurrentStatus {
   };
 
   bool get r18 => map["r18"];
-  set r18(bool value) => map["r18"] = value;
+  set r18(bool value) {
+    map["r18"] = value;
+    settings.save();
+  }
+
   int get num => map["num"];
-  set num(int value) => map["num"] = value;
+  set num(int value) {
+    map["num"] = value;
+    settings.save();
+  }
+
   String get tag => map["tag"];
-  set tag(String value) => map["tag"] = value;
+
+  set tag(String value) {
+    map["tag"] = value;
+    settings.save();
+  }
 }
 
 final AnosuStatus myStatus = AnosuStatus();
 
 class Anosu extends ImageAPI {
-  const Anosu(super.settings, {super.key});
+  Anosu({super.key});
+  @override
+  final AnosuStatus status = myStatus;
   @override
   ImageAPIState<Anosu> createState() => _AnosuState();
 }
 
 class _AnosuState extends ImageAPIState<Anosu> {
   @override
-  final AnosuStatus status = myStatus;
-
-  @override
   Future<List<ImageUrl>> getImageUrls() async {
-    String args = "num=${status.num}";
-    if (status.r18) {
+    String args = "num=${myStatus.num}";
+    if (myStatus.r18) {
       args = "$args&r18=1";
     }
-    if (status.tag != "") {
-      args = "$args&keyword=${status.tag}";
+    if (myStatus.tag != "") {
+      args = "$args&keyword=${myStatus.tag}";
     }
     var resp = await dio.get("https://image.anosu.top/pixiv/json?$args");
     return (resp.data as List)

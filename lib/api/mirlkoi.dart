@@ -14,16 +14,24 @@ class MirlKoiStatus extends CurrentStatus {
   };
 
   int get num => map["num"];
-  set num(int value) => map["num"] = value;
+  set num(int value) {
+    map["num"] = value;
+    settings.save();
+  }
+
   String get tag => map["tag"];
-  set tag(String value) => map["tag"] = value;
+  set tag(String value) {
+    map["tag"] = value;
+    settings.save();
+  }
 }
 
 final MirlKoiStatus myStatus = MirlKoiStatus();
 
 class MirlKoi extends ImageAPI {
-  const MirlKoi(super.settings, {super.key});
-
+  MirlKoi({super.key});
+  @override
+  final MirlKoiStatus status = myStatus;
   @override
   ImageAPIState<MirlKoi> createState() => _MirlKoiState();
 }
@@ -33,11 +41,8 @@ int currentIndex = 0;
 
 class _MirlKoiState extends ImageAPIState<MirlKoi> {
   @override
-  final MirlKoiStatus status = myStatus;
-
-  @override
   getImageUrls() async {
-    String args = "type=json&num=${status.num}&sort=${status.tag}";
+    String args = "type=json&num=${myStatus.num}&sort=${myStatus.tag}";
     var resp = await dio.get("https://iw233.cn/api.php?$args");
     return (resp.data["pic"] as List)
         .map((item) => ImageUrl(item as String))

@@ -8,8 +8,16 @@ import "download.dart";
 import "settings.dart";
 
 const title = "Setu Collection";
+
+final Anosu anosu = Anosu();
+final MirlKoi mirlKoi = MirlKoi();
+final Lolicon lolicon = Lolicon();
+
 void main() async {
   final Settings settings = await Settings.load();
+  anosu.status.loadSettings(settings);
+  mirlKoi.status.loadSettings(settings);
+  lolicon.status.loadSettings(settings);
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (context) => AppSettings(settings)),
@@ -55,19 +63,11 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  _MyHomePageState();
-  late final String title;
-  late final Anosu anosu;
-  late final MirlKoi mirlKoi;
-  late final Lolicon lolicon;
+  late String title;
 
   @override
   void initState() {
     title = widget.settings.api;
-    anosu = Anosu(widget.settings);
-    mirlKoi = MirlKoi(widget.settings);
-    lolicon = Lolicon(widget.settings);
-
     super.initState();
   }
 

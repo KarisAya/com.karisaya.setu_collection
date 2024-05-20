@@ -8,13 +8,13 @@ class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(
-                        flutterEngine.dartExecutor.binaryMessenger,
-                        "com.karisaya.setu_collection/getPublicDir"
-                )
-                .setMethodCallHandler { call, result ->
-                    if (call.method == "Pictures") {
-                        result.success("Hello Kotlin")
-                    }
+            flutterEngine.dartExecutor.binaryMessenger,
+            "com.karisaya.setu_collection/getPublicDir"
+        )
+            .setMethodCallHandler { call, result ->
+                if (call.method == "Pictures") {
+                    result.success("Hello Kotlin")
                 }
+            }
     }
 }

@@ -57,34 +57,29 @@ abstract class CurrentStatus {
 }
 
 abstract class ImageAPI extends StatefulWidget {
-  const ImageAPI(this.settings, {super.key});
-  final Settings settings;
+  const ImageAPI({super.key});
+  abstract final CurrentStatus status;
+  // const ImageAPI(this.settings, {super.key});
+  // final Settings settings;
 }
 
 abstract class ImageAPIState<T extends ImageAPI> extends State<T> {
-  abstract final CurrentStatus status;
   CarouselController carouselController = CarouselController();
   bool _isLoading = false;
   TextEditingController pageTEC = TextEditingController();
 
   void onPageChanged(int index) {
     setState(() {
-      status.indexTo(index);
-      if (index == status.imageUrls.length - 1 && !_isLoading) {
+      widget.status.indexTo(index);
+      if (index == widget.status.imageUrls.length - 1 && !_isLoading) {
         getData();
       }
     });
   }
 
   @override
-  void initState() {
-    status.loadSettings(widget.settings);
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (status.imageUrls.length > status.currentIndex) {
+    if (widget.status.imageUrls.length > widget.status.currentIndex) {
       return Column(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
@@ -96,13 +91,13 @@ abstract class ImageAPIState<T extends ImageAPI> extends State<T> {
               viewportFraction: 0.6,
               aspectRatio: 1.0,
               height: MediaQuery.of(context).size.width,
-              initialPage: status.currentIndex,
+              initialPage: widget.status.currentIndex,
               enableInfiniteScroll: false,
               onPageChanged: (index, reason) {
                 onPageChanged(index);
               },
             ),
-            items: status.imageUrls.map((url) {
+            items: widget.status.imageUrls.map((url) {
               return Builder(
                 builder: (BuildContext context) {
                   return GestureDetector(
@@ -110,8 +105,8 @@ abstract class ImageAPIState<T extends ImageAPI> extends State<T> {
                       downloadManager.download(url.highestQuality);
                       ScaffoldMessenger.of(context).hideCurrentSnackBar();
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content:
-                              Text('图片 ${status.currentIndex + 1} 已加入下载队列！')));
+                          content: Text(
+                              '图片 ${widget.status.currentIndex + 1} 已加入下载队列！')));
                     },
                     onTap: () {
                       Navigator.push(
@@ -137,7 +132,7 @@ abstract class ImageAPIState<T extends ImageAPI> extends State<T> {
             }).toList(),
           ),
           GestureDetector(
-            child: Text((status.currentIndex + 1).toString(),
+            child: Text((widget.status.currentIndex + 1).toString(),
                 style: const TextStyle(
                   color: Colors.grey, // 文本颜色
                   fontSize: 24,
@@ -150,13 +145,13 @@ abstract class ImageAPIState<T extends ImageAPI> extends State<T> {
                       context,
                       pageTEC,
                       title: const Text("输入跳转的页面"),
-                      hintText: "1-${status.imageUrls.length}",
+                      hintText: "1-${widget.status.imageUrls.length}",
                     );
                   });
               if (result == null) return;
               int? numInt = int.tryParse(result);
               if (numInt == null) return;
-              if (numInt < 0 || numInt > status.imageUrls.length) return;
+              if (numInt < 0 || numInt > widget.status.imageUrls.length) return;
               setState(() {
                 carouselController.animateToPage(numInt - 1);
               });
@@ -164,7 +159,7 @@ abstract class ImageAPIState<T extends ImageAPI> extends State<T> {
           )
         ],
       );
-    } else if (status.error) {
+    } else if (widget.status.error) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -177,7 +172,7 @@ abstract class ImageAPIState<T extends ImageAPI> extends State<T> {
               onPressed: () {
                 getData();
                 setState(() {
-                  status.error = false;
+                  widget.status.error = false;
                 });
               },
               child: const Text('点击重试'),
@@ -201,11 +196,11 @@ abstract class ImageAPIState<T extends ImageAPI> extends State<T> {
     }
     coldDown = DateTime.now().millisecondsSinceEpoch + 1000;
     try {
-      logger.i("从${status.key}获取图片列表..");
-      status.imageUrls.addAll(await getImageUrls());
+      logger.i("从${widget.status.key}获取图片列表..");
+      widget.status.imageUrls.addAll(await getImageUrls());
     } catch (e) {
-      if (status.imageUrls.isEmpty) {
-        status.error = true;
+      if (widget.status.imageUrls.isEmpty) {
+        widget.status.error = true;
       }
       logger.e(e);
     }
@@ -230,12 +225,12 @@ class ImagePreviewPage extends StatelessWidget {
         api.onPageChanged(index);
         api.carouselController.jumpToPage(index);
       },
-      controller: PageController(initialPage: api.status.currentIndex),
+      controller: PageController(initialPage: api.widget.status.currentIndex),
       itemBuilder: (BuildContext context, int index) {
         return GestureDetector(
           child: Center(
               child: CachedNetworkImage(
-            imageUrl: api.status.imageUrls[index].url,
+            imageUrl: api.widget.status.imageUrls[index].url,
             placeholder: (context, url) => const CircularProgressIndicator(),
             errorWidget: (context, url, error) => const Icon(Icons.error),
           )),
@@ -244,10 +239,11 @@ class ImagePreviewPage extends StatelessWidget {
           },
           onLongPress: () {
             downloadManager
-                .download(api.status.imageUrls[index].highestQuality);
+                .download(api.widget.status.imageUrls[index].highestQuality);
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text('图片 ${api.status.currentIndex + 1} 已加入下载队列！')));
+                content:
+                    Text('图片 ${api.widget.status.currentIndex + 1} 已加入下载队列！')));
           },
         );
       },

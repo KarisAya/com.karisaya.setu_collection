@@ -16,36 +16,56 @@ class LoliconStatus extends CurrentStatus {
   };
 
   bool get r18 => map["r18"];
-  set r18(bool value) => map["r18"] = value;
+  set r18(bool value) {
+    map["r18"] = value;
+    settings.save();
+  }
+
   bool get excludeAI => map["excludeAI"];
-  set excludeAI(bool value) => map["excludeAI"] = value;
+  set excludeAI(bool value) {
+    map["excludeAI"] = value;
+    settings.save();
+  }
+
   int get num => map["num"];
-  set num(int value) => map["num"] = value;
+  set num(int value) {
+    map["num"] = value;
+    settings.save();
+  }
+
   List<String> get tag => map["tag"];
-  set tag(List<String> value) => map["tag"] = value;
+  set tag(List<String> value) {
+    map["tag"] = value;
+    settings.save();
+  }
+
+  @override
+  void loadSettings(value) {
+    super.loadSettings(value);
+    map["tag"] = (map["tag"] as List).map((value) => value as String).toList();
+  }
 }
 
 final LoliconStatus myStatus = LoliconStatus();
 
 class Lolicon extends ImageAPI {
-  const Lolicon(super.settings, {super.key});
+  Lolicon({super.key});
+  @override
+  final LoliconStatus status = myStatus;
   @override
   ImageAPIState<Lolicon> createState() => _LoliconState();
 }
 
 class _LoliconState extends ImageAPIState<Lolicon> {
   @override
-  final LoliconStatus status = myStatus;
-
-  @override
   Future<List<ImageUrl>> getImageUrls() async {
     var data = {
-      "r18": status.r18 ? 1 : 0,
-      "num": status.num,
-      "excludeAI": status.excludeAI,
+      "r18": myStatus.r18 ? 1 : 0,
+      "num": myStatus.num,
+      "excludeAI": myStatus.excludeAI,
       "size": ["original", "regular"]
     };
-    if (status.tag.isNotEmpty) data["tag"] = status.tag;
+    if (myStatus.tag.isNotEmpty) data["tag"] = myStatus.tag;
 
     var resp = await dio.post("https://api.lolicon.app/setu/v2", data: data);
     return (resp.data["data"] as List).map((item) {
