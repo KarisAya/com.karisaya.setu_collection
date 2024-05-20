@@ -13,14 +13,14 @@ class Settings {
   String api = "Lolicon API";
   bool drawerImage = false;
   String drawerImageUrl = "https://moe.jitsu.top/img/?sort=pc";
-  Map<String, String> apiSettings = {};
+  Map<String, Map> apiSettings = {};
 
   Settings.fromJson(Map<String, dynamic> json)
       : file = File(json['file'] as String),
         seedColor = Color(json['seedColor'] as int),
         api = json['api'] as String,
         drawerImage = json['drawerImage'] as bool,
-        apiSettings = Map<String, String>.from(json['apiSettings'] as Map);
+        apiSettings = Map<String, Map>.from(json['apiSettings'] as Map);
 
   Map<String, dynamic> toJson() => {
         'file': file.path,

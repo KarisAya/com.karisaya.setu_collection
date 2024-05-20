@@ -5,30 +5,42 @@ import "../image_api.dart";
 Dio dio = Dio();
 
 class AnosuStatus extends CurrentStatus {
-  AnosuStatus() : super();
-  bool r18 = false;
-  int num = 30;
-  String? tag;
+  @override
+  final String key = "Anosu API";
+  @override
+  final Map<String, dynamic> defaultSettings = {
+    "r18": false,
+    "num": 30,
+    "tag": "",
+  };
+
+  bool get r18 => map["r18"];
+  set r18(bool value) => map["r18"] = value;
+  int get num => map["num"];
+  set num(int value) => map["num"] = value;
+  String get tag => map["tag"];
+  set tag(String value) => map["tag"] = value;
 }
 
-var status = AnosuStatus();
+final AnosuStatus myStatus = AnosuStatus();
 
-class Anosu extends StatefulWidget {
-  const Anosu({super.key});
-
+class Anosu extends ImageAPI {
+  const Anosu(super.settings, {super.key});
   @override
-  State<StatefulWidget> createState() => _AnosuState();
+  ImageAPIState<Anosu> createState() => _AnosuState();
 }
 
 class _AnosuState extends ImageAPIState<Anosu> {
-  _AnosuState() : super(api: "Anosu API", status: status);
+  @override
+  final AnosuStatus status = myStatus;
+
   @override
   Future<List<ImageUrl>> getImageUrls() async {
     String args = "num=${status.num}";
     if (status.r18) {
       args = "$args&r18=1";
     }
-    if (status.tag != null) {
+    if (status.tag != "") {
       args = "$args&keyword=${status.tag}";
     }
     var resp = await dio.get("https://image.anosu.top/pixiv/json?$args");
@@ -40,7 +52,6 @@ class _AnosuState extends ImageAPIState<Anosu> {
 
 class AnosuSetting extends StatefulWidget {
   const AnosuSetting({super.key});
-
   @override
   State<StatefulWidget> createState() => _AnosuSettingState();
 }
@@ -57,7 +68,7 @@ class _AnosuSettingState extends State<AnosuSetting> {
         child: ListBody(
           children: [
             ListTile(
-              title: Text('请求图片数量: ${status.num}'),
+              title: Text('请求图片数量: ${myStatus.num}'),
               subtitle: const Text("1-30"),
               trailing: IconButton(
                 icon: const Icon(Icons.edit),
@@ -76,7 +87,7 @@ class _AnosuSettingState extends State<AnosuSetting> {
                   if (numInt == null) return;
                   if (numInt < 0 || numInt > 30) return;
                   setState(() {
-                    status.num = numInt;
+                    myStatus.num = numInt;
                   });
                 },
               ),
@@ -84,11 +95,11 @@ class _AnosuSettingState extends State<AnosuSetting> {
             ),
             ListTile(
               title: const Text('请求关键字'),
-              subtitle: Text(status.tag ?? "不指定"),
+              subtitle: Text(myStatus.tag.isEmpty ? "不指定" : myStatus.tag),
               trailing: IconButton(
                 icon: const Icon(Icons.edit),
                 onPressed: () async {
-                  status.tag = await showDialog(
+                  myStatus.tag = await showDialog(
                       context: context,
                       builder: (BuildContext context) {
                         return buildAlertDialog(
@@ -99,18 +110,18 @@ class _AnosuSettingState extends State<AnosuSetting> {
                         );
                       });
                   setState(() {
-                    status.preUpdate();
+                    myStatus.preUpdate();
                   });
                 },
               ),
               contentPadding: EdgeInsets.zero,
             ),
             SwitchListTile(
-              value: status.r18,
+              value: myStatus.r18,
               onChanged: (bool flag) {
                 setState(() {
-                  status.preUpdate();
-                  status.r18 = flag;
+                  myStatus.preUpdate();
+                  myStatus.r18 = flag;
                 });
               },
               title: const Text('开启 r18'),

@@ -5,24 +5,38 @@ import "../image_api.dart";
 Dio dio = Dio();
 
 class LoliconStatus extends CurrentStatus {
-  LoliconStatus() : super();
-  bool r18 = false;
-  bool excludeAI = true;
-  int num = 20;
-  List<String> tag = [];
+  @override
+  final String key = "Lolicon API";
+  @override
+  final Map<String, dynamic> defaultSettings = {
+    "r18": false,
+    "excludeAI": true,
+    "num": 20,
+    "tag": [],
+  };
+
+  bool get r18 => map["r18"];
+  set r18(bool value) => map["r18"] = value;
+  bool get excludeAI => map["excludeAI"];
+  set excludeAI(bool value) => map["excludeAI"] = value;
+  int get num => map["num"];
+  set num(int value) => map["num"] = value;
+  List<String> get tag => map["tag"];
+  set tag(List<String> value) => map["tag"] = value;
 }
 
-var status = LoliconStatus();
+final LoliconStatus myStatus = LoliconStatus();
 
-class Lolicon extends StatefulWidget {
-  const Lolicon({super.key});
-
+class Lolicon extends ImageAPI {
+  const Lolicon(super.settings, {super.key});
   @override
-  State<StatefulWidget> createState() => _LoliconState();
+  ImageAPIState<Lolicon> createState() => _LoliconState();
 }
 
 class _LoliconState extends ImageAPIState<Lolicon> {
-  _LoliconState() : super(api: "Lolicon API", status: status);
+  @override
+  final LoliconStatus status = myStatus;
+
   @override
   Future<List<ImageUrl>> getImageUrls() async {
     var data = {
@@ -62,7 +76,7 @@ class _LoliconSettingState extends State<LoliconSetting> {
         child: ListBody(
           children: [
             ListTile(
-              title: Text('请求图片数量: ${status.num}'),
+              title: Text('请求图片数量: ${myStatus.num}'),
               subtitle: const Text("1-20"),
               trailing: IconButton(
                 icon: const Icon(Icons.edit),
@@ -81,7 +95,7 @@ class _LoliconSettingState extends State<LoliconSetting> {
                   if (numInt == null) return;
                   if (numInt < 0 || numInt > 30) return;
                   setState(() {
-                    status.num = numInt;
+                    myStatus.num = numInt;
                   });
                 },
               ),
@@ -89,7 +103,8 @@ class _LoliconSettingState extends State<LoliconSetting> {
             ),
             ListTile(
               title: const Text('请求关键字'),
-              subtitle: Text(status.tag.isEmpty ? "不指定" : status.tag.join(",")),
+              subtitle:
+                  Text(myStatus.tag.isEmpty ? "不指定" : myStatus.tag.join(",")),
               trailing: IconButton(
                 icon: const Icon(Icons.edit),
                 onPressed: () async {
@@ -104,19 +119,19 @@ class _LoliconSettingState extends State<LoliconSetting> {
                         );
                       });
                   setState(() {
-                    status.preUpdate();
-                    status.tag = tag.split(" ");
+                    myStatus.preUpdate();
+                    myStatus.tag = tag.split(" ");
                   });
                 },
               ),
               contentPadding: EdgeInsets.zero,
             ),
             SwitchListTile(
-              value: status.r18,
+              value: myStatus.r18,
               onChanged: (bool flag) {
                 setState(() {
-                  status.preUpdate();
-                  status.r18 = flag;
+                  myStatus.preUpdate();
+                  myStatus.r18 = flag;
                 });
               },
               title: const Text('开启 r18'),
@@ -126,10 +141,10 @@ class _LoliconSettingState extends State<LoliconSetting> {
               contentPadding: EdgeInsets.zero,
             ),
             SwitchListTile(
-              value: status.excludeAI,
+              value: myStatus.excludeAI,
               onChanged: (bool flag) {
                 setState(() {
-                  status.excludeAI = flag;
+                  myStatus.excludeAI = flag;
                 });
               },
               title: const Text('排除AI创作'),

@@ -5,16 +5,16 @@ import "api/lolicon.dart";
 import "api/anosu.dart";
 import "api/mirlkoi.dart";
 import "download.dart";
-import "setting.dart";
+import "settings.dart";
 
 const title = "Setu Collection";
 void main() async {
-  var settings = await Settings.load();
+  final Settings settings = await Settings.load();
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (context) => AppSettings(settings)),
     ],
-    child: MyApp(settings),
+    child: const MyApp(),
   ));
 }
 
@@ -29,17 +29,18 @@ class AppSettings with ChangeNotifier {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp(this.settings, {super.key});
-  final Settings settings;
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Consumer<AppSettings>(builder: (context, appSettings, child) {
       return MaterialApp(
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: settings.seedColor),
+          colorScheme:
+              ColorScheme.fromSeed(seedColor: appSettings.settings.seedColor),
           useMaterial3: true,
         ),
-        home: MyHomePage(settings),
+        home: MyHomePage(appSettings.settings),
       );
     });
   }
@@ -48,17 +49,25 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   const MyHomePage(this.settings, {super.key});
   final Settings settings;
+
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
   _MyHomePageState();
-  late String title;
+  late final String title;
+  late final Anosu anosu;
+  late final MirlKoi mirlKoi;
+  late final Lolicon lolicon;
 
   @override
   void initState() {
     title = widget.settings.api;
+    anosu = Anosu(widget.settings);
+    mirlKoi = MirlKoi(widget.settings);
+    lolicon = Lolicon(widget.settings);
+
     super.initState();
   }
 
@@ -184,11 +193,11 @@ class _MyHomePageState extends State<MyHomePage> {
     title = bodyName;
     switch (bodyName) {
       case 'Anosu API':
-        return const Anosu();
+        return anosu;
       case 'MirlKoi API':
-        return const MirlKoi();
+        return mirlKoi;
       case 'Lolicon API':
-        return const Lolicon();
+        return lolicon;
       default:
         return const Center(
           child: Text('未知页面'),

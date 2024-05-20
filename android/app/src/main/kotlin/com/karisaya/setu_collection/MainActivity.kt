@@ -9,10 +9,10 @@ class MainActivity : FlutterActivity() {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(
                         flutterEngine.dartExecutor.binaryMessenger,
-                        "com.karisaya.setu_collection/get_public_dir"
+                        "com.karisaya.setu_collection/getPublicDir"
                 )
                 .setMethodCallHandler { call, result ->
-                    if (call.method == "getPicturesPath") {
+                    if (call.method == "Pictures") {
                         result.success("Hello Kotlin")
                     }
                 }

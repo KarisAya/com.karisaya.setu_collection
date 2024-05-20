@@ -3,6 +3,7 @@ import 'package:logger/logger.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import "download.dart";
+import "./settings.dart" show Settings;
 
 Logger logger = Logger();
 
@@ -22,8 +23,10 @@ class ImageUrl {
   }
 }
 
-class CurrentStatus {
-  CurrentStatus();
+abstract class CurrentStatus {
+  abstract final String key;
+  abstract final Map<String, dynamic> defaultSettings;
+
   List<ImageUrl> imageUrls = [];
   int currentIndex = 0;
   int maxIndex = 0;
@@ -39,12 +42,27 @@ class CurrentStatus {
   void preUpdate() {
     imageUrls = imageUrls.sublist(0, maxIndex + 2);
   }
+
+  late final Settings settings;
+
+  void loadSettings(Settings value) {
+    settings = value;
+    if (!settings.apiSettings.containsKey(key)) {
+      settings.apiSettings[key] = defaultSettings;
+    }
+    map = settings.apiSettings[key] as Map;
+  }
+
+  late Map map;
 }
 
-abstract class ImageAPIState<T extends StatefulWidget> extends State<T> {
-  ImageAPIState({required this.api, required this.status});
-  final String api;
-  CurrentStatus status;
+abstract class ImageAPI extends StatefulWidget {
+  const ImageAPI(this.settings, {super.key});
+  final Settings settings;
+}
+
+abstract class ImageAPIState<T extends ImageAPI> extends State<T> {
+  abstract final CurrentStatus status;
   CarouselController carouselController = CarouselController();
   bool _isLoading = false;
   TextEditingController pageTEC = TextEditingController();
@@ -56,6 +74,12 @@ abstract class ImageAPIState<T extends StatefulWidget> extends State<T> {
         getData();
       }
     });
+  }
+
+  @override
+  void initState() {
+    status.loadSettings(widget.settings);
+    super.initState();
   }
 
   @override
@@ -177,7 +201,7 @@ abstract class ImageAPIState<T extends StatefulWidget> extends State<T> {
     }
     coldDown = DateTime.now().millisecondsSinceEpoch + 1000;
     try {
-      logger.i("从$api获取图片列表..");
+      logger.i("从${status.key}获取图片列表..");
       status.imageUrls.addAll(await getImageUrls());
     } catch (e) {
       if (status.imageUrls.isEmpty) {

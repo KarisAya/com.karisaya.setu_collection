@@ -5,29 +5,36 @@ import "../image_api.dart";
 Dio dio = Dio();
 
 class MirlKoiStatus extends CurrentStatus {
-  MirlKoiStatus() : super();
-  int num = 100;
-  String tag = "random";
+  @override
+  final String key = "MirlKoi API";
+  @override
+  final Map<String, dynamic> defaultSettings = {
+    "num": 20,
+    "tag": "random",
+  };
+
+  int get num => map["num"];
+  set num(int value) => map["num"] = value;
+  String get tag => map["tag"];
+  set tag(String value) => map["tag"] = value;
 }
 
-var status = MirlKoiStatus();
+final MirlKoiStatus myStatus = MirlKoiStatus();
 
-class MirlKoi extends StatefulWidget {
-  const MirlKoi({super.key});
+class MirlKoi extends ImageAPI {
+  const MirlKoi(super.settings, {super.key});
 
   @override
-  State<StatefulWidget> createState() => _MirlKoiState();
+  ImageAPIState<MirlKoi> createState() => _MirlKoiState();
 }
 
 List<String> imageUrls = [];
 int currentIndex = 0;
 
 class _MirlKoiState extends ImageAPIState<MirlKoi> {
-  _MirlKoiState()
-      : super(
-          api: "MirlKoi API",
-          status: status,
-        );
+  @override
+  final MirlKoiStatus status = myStatus;
+
   @override
   getImageUrls() async {
     String args = "type=json&num=${status.num}&sort=${status.tag}";
@@ -56,7 +63,7 @@ class _MirlKoiSettingState extends State<MirlKoiSetting> {
         child: ListBody(
           children: [
             ListTile(
-              title: Text('请求图片数量: ${status.num}'),
+              title: Text('请求图片数量: ${myStatus.num}'),
               subtitle: const Text("1-100"),
               trailing: IconButton(
                 icon: const Icon(Icons.edit),
@@ -75,7 +82,7 @@ class _MirlKoiSettingState extends State<MirlKoiSetting> {
                   if (numInt == null) return;
                   if (numInt < 0 || numInt > 100) return;
                   setState(() {
-                    status.num = numInt;
+                    myStatus.num = numInt;
                   });
                 },
               ),
@@ -83,13 +90,13 @@ class _MirlKoiSettingState extends State<MirlKoiSetting> {
             ),
             ListTile(
               title: const Text('选择图库'),
-              subtitle: Text(status.tag),
+              subtitle: Text(myStatus.tag),
               trailing: PopupMenuButton<String>(
                 onSelected: (selectedValue) {
-                  if (selectedValue == status.tag) return;
+                  if (selectedValue == myStatus.tag) return;
                   setState(() {
-                    status.preUpdate();
-                    status.tag = selectedValue;
+                    myStatus.preUpdate();
+                    myStatus.tag = selectedValue;
                   });
                 },
                 itemBuilder: (context) {

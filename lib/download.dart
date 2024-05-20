@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 
 Dio dio = Dio();
 
-MethodChannel get_public_dir = const MethodChannel(
-  'com.karisaya.setu_collection/get_public_dir',
+MethodChannel getPublicDir = const MethodChannel(
+  'com.karisaya.setu_collection/getPublicDir',
 );
 
 Future<String?> get picturesPath async {
   try {
-    return await get_public_dir.invokeMethod('getPicturesPath');
+    return await getPublicDir.invokeMethod('Pictures');
   } catch (e) {
     throw PlatformException(
       code: 'UNAVAILABLE',
