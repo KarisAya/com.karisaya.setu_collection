@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 
 Dio dio = Dio();
 
-MethodChannel getPublicDir = const MethodChannel(
-  'com.karisaya.setu_collection/getPublicDir',
+MethodChannel channel = const MethodChannel(
+  '"com.karisaya.setu_collection/mediaAPI"',
 );
 
-Future<String?> get picturesPath async {
+Future<String?> savePicture(String file) async {
   try {
-    return await getPublicDir.invokeMethod('Pictures');
+    return await channel.invokeMethod('savePicture', file);
   } catch (e) {
     throw PlatformException(
       code: 'UNAVAILABLE',
@@ -23,10 +23,6 @@ Future<String?> get picturesPath async {
 class DownloadManager {
   String? path;
   List<DownloadTask> tasks = [];
-  DownloadManager() {
-    picturesPath.then((path) => this.path = path);
-  }
-
   bool download(String url) {
     if (path == null) return false;
     var task = DownloadTask(url: url, name: "${url.hashCode}.jpg", path: path!);
@@ -62,9 +58,9 @@ class DownloadTask {
     status = 1;
     dio.download(url, savePath, onReceiveProgress: (int current, int total) {
       if (onReceiveProgress != null) onReceiveProgress!(current, total);
-      if (current >= total) {
-        status = 2;
-      }
+    }).then((_) {
+      savePicture(savePath);
+      status = 2;
     });
   }
 
