@@ -4,42 +4,35 @@ import 'package:flutter/material.dart';
 
 Dio dio = Dio();
 
-MethodChannel _channel = const MethodChannel(
+MethodChannel get_public_dir = const MethodChannel(
   'com.karisaya.setu_collection/get_public_dir',
 );
 
 Future<String?> get picturesPath async {
   try {
-    final String result = await _channel.invokeMethod('getPicturesPath');
-    return result;
+    return await get_public_dir.invokeMethod('getPicturesPath');
   } catch (e) {
     throw PlatformException(
       code: 'UNAVAILABLE',
-      message: 'Failed to get Pictures directory',
+      message: 'Failed to get Pictures Directory',
       details: e,
     );
   }
 }
 
 class DownloadManager {
-  late String? path;
-  late String? a;
+  String? path;
   List<DownloadTask> tasks = [];
   DownloadManager() {
-    init();
-    // _tasks = cache
+    picturesPath.then((path) => this.path = path);
   }
 
-  void init() async {
-    path = await picturesPath;
-  }
-
-  void download(String url, String name) {
-    if (path == null) return;
-    print(path);
-    var task = DownloadTask(url: url, name: name, path: path!);
+  bool download(String url) {
+    if (path == null) return false;
+    var task = DownloadTask(url: url, name: "${url.hashCode}.jpg", path: path!);
     tasks.add(task);
     task.start();
+    return true;
   }
 }
 

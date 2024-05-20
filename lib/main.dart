@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import "package:flutter/widgets.dart";
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import "api/lolicon.dart";
@@ -88,6 +87,7 @@ class _MyHomePageState extends State<MyHomePage> {
           );
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: Text(title),
         backgroundColor: Theme.of(context).colorScheme.primary,

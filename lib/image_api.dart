@@ -83,7 +83,7 @@ abstract class ImageAPIState<T extends StatefulWidget> extends State<T> {
                 builder: (BuildContext context) {
                   return GestureDetector(
                     onLongPress: () {
-                      downloadFile(url.highestQuality);
+                      downloadManager.download(url.highestQuality);
                       ScaffoldMessenger.of(context).hideCurrentSnackBar();
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                           content:
@@ -169,10 +169,6 @@ abstract class ImageAPIState<T extends StatefulWidget> extends State<T> {
     }
   }
 
-  downloadFile(String fileUrl) {
-    downloadManager.download(fileUrl, "${fileUrl.hashCode}.jpg");
-  }
-
   int coldDown = 0;
   getData() async {
     _isLoading = true;
@@ -223,10 +219,11 @@ class ImagePreviewPage extends StatelessWidget {
             Navigator.pop(context);
           },
           onLongPress: () {
-            api.downloadFile(api.status.imageUrls[index].highestQuality);
+            downloadManager
+                .download(api.status.imageUrls[index].highestQuality);
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('图片 ${index + 1} 已加入下载队列！')));
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text('图片 ${api.status.currentIndex + 1} 已加入下载队列！')));
           },
         );
       },
