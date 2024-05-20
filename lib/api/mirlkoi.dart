@@ -9,7 +9,7 @@ class MirlKoiStatus extends CurrentStatus {
   final String key = "MirlKoi API";
   @override
   final Map<String, dynamic> defaultSettings = {
-    "num": 20,
+    "num": 100,
     "tag": "random",
   };
 

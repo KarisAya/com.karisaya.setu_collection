@@ -9,7 +9,7 @@ Logger logger = Logger();
 class Settings {
   Settings(this.file);
   File file;
-  Color seedColor = Colors.grey;
+  Color seedColor = Colors.cyan;
   String api = "Lolicon API";
   bool drawerImage = false;
   String drawerImageUrl = "https://moe.jitsu.top/img/?sort=pc";

@@ -256,16 +256,16 @@ class _SettingPageState extends State<SettingPage> {
                 itemBuilder: (context) {
                   return [
                     PopupMenuItem(
-                      value: Colors.grey,
-                      child: colorCard(Colors.grey),
-                    ),
-                    PopupMenuItem<Color>(
-                      value: Colors.blue,
-                      child: colorCard(Colors.blue),
+                      value: Colors.cyan,
+                      child: colorCard(Colors.cyan),
                     ),
                     PopupMenuItem(
-                      value: Colors.orange,
-                      child: colorCard(Colors.orange),
+                      value: Colors.lime,
+                      child: colorCard(Colors.lime),
+                    ),
+                    PopupMenuItem<Color>(
+                      value: Colors.deepOrange,
+                      child: colorCard(Colors.deepOrange),
                     ),
                     PopupMenuItem(
                       value: Colors.green,
@@ -278,6 +278,10 @@ class _SettingPageState extends State<SettingPage> {
                     PopupMenuItem(
                       value: Colors.deepPurple,
                       child: colorCard(Colors.deepPurple),
+                    ),
+                    PopupMenuItem(
+                      value: Colors.indigo,
+                      child: colorCard(Colors.indigo),
                     ),
                   ];
                 },

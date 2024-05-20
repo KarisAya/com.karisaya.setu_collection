@@ -48,7 +48,7 @@ abstract class CurrentStatus {
   void loadSettings(Settings value) {
     settings = value;
     if (!settings.apiSettings.containsKey(key)) {
-      settings.apiSettings[key] = defaultSettings;
+      settings.apiSettings[key] = {...defaultSettings};
     }
     map = settings.apiSettings[key] as Map;
   }
@@ -192,7 +192,7 @@ abstract class ImageAPIState<T extends ImageAPI> extends State<T> {
   getData() async {
     _isLoading = true;
     if (coldDown > DateTime.now().millisecondsSinceEpoch) {
-      throw StateError('请求速度过快，请稍后再试');
+      throw StateError('请求速度过快');
     }
     coldDown = DateTime.now().millisecondsSinceEpoch + 1000;
     try {
