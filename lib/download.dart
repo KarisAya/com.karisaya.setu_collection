@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
 import 'package:flutter/material.dart';
@@ -11,23 +13,19 @@ MethodChannel channel = const MethodChannel(
   'com.karisaya.setu_collection/publicDirectory',
 );
 
-Future<String?> get getPublicDirectoryPicture async {
+insertImage(Uint8List bytes) {
   try {
-    return await channel.invokeMethod('Picture');
+    channel.invokeMethod('insertImage');
   } on PlatformException catch (e) {
     logger.e(e);
-    return null;
   }
 }
 
 class DownloadManager {
   List<DownloadTask> tasks = [];
   Future<bool> download(String url) async {
-    var path = await getPublicDirectoryPicture;
-    if (path == null) {
-      return false;
-    }
-    var task = DownloadTask(url: url, name: "${url.hashCode}.jpg", path: path);
+    var task = DownloadTask(
+        url: url, name: "${url.hashCode}.png", path: "$path/setu_collection");
     tasks.add(task);
     task.start();
     return true;

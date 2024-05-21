@@ -1,52 +1,55 @@
 package com.karisaya.setu_collection
 
-import android.Manifest
-import android.content.pm.PackageManager
-import android.os.Environment
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
+import android.content.ContentValues
+import android.provider.MediaStore
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import okhttp3.OkHttpClient
+
+val httpClient = OkHttpClient()
 
 class MainActivity : FlutterActivity() {
-
-    private val requiredPermissions = arrayOf(
-        Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE
-    )
-
-    private fun checkAndRequestPermissions() {
-        val missingPermissions = requiredPermissions.filter {
-            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
-        }
-        if (missingPermissions.isEmpty()) return
-        ActivityCompat.requestPermissions(
-            this, missingPermissions.toTypedArray(), 1001
-        )
-    }
-
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(
-            flutterEngine.dartExecutor.binaryMessenger,
-            "com.karisaya.setu_collection/publicDirectory",
-        ).setMethodCallHandler { call, result ->
-            when (call.method) {
-                "Picture" -> {
-                    checkAndRequestPermissions()
-                    if (requiredPermissions.any {
-                            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
-                        }) {
-                        result.error("Permissions Error", "用户拒绝了权限", null)
-                        return@setMethodCallHandler
+                        flutterEngine.dartExecutor.binaryMessenger,
+                        "com.karisaya.setu_collection",
+                )
+                .setMethodCallHandler { call, result ->
+                    when (call.method) {
+                        "insertImage" -> {
+                            val resolver = this.contentResolver
+                            val contentValues =
+                                    ContentValues().apply {
+                                        put(
+                                                MediaStore.Images.Media.DATE_TAKEN,
+                                                System.currentTimeMillis(),
+                                        )
+                                        put(
+                                                MediaStore.Images.Media.MIME_TYPE,
+                                                "image/png",
+                                        )
+                                        put(
+                                                MediaStore.Images.Media.RELATIVE_PATH,
+                                                "Pictures/setu_collection",
+                                        )
+                                    }
+                            val uri =
+                                    resolver.insert(
+                                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                                            contentValues
+                                    )
+                            uri?.let {
+                                resolver.openOutputStream(it)?.use { outputStream ->
+                                    outputStream.write(call.arguments())
+                                    result.success(null)
+                                    return@setMethodCallHandler
+                                }
+                            }
+                            result.error("MediaStoreError", "some wrong happened", null)
+                        }
                     }
-                    result.success(
-                        Environment.getExternalStoragePublicDirectory(
-                            Environment.DIRECTORY_PICTURES
-                        ).toString()
-                    )
                 }
-            }
-        }
     }
 }
