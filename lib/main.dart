@@ -10,7 +10,7 @@ import "settings.dart";
 const title = "Setu Collection";
 
 final Anosu anosu = Anosu();
-final MirlKoi mirlKoi = MirlKoi();
+final MirlKoi mirlkoi = MirlKoi();
 final Lolicon lolicon = Lolicon();
 
 void main() async {
@@ -21,7 +21,7 @@ void main() async {
 
   Settings settings = await Settings.load();
   anosu.status.loadSettings(settings);
-  mirlKoi.status.loadSettings(settings);
+  mirlkoi.status.loadSettings(settings);
   lolicon.status.loadSettings(settings);
   runApp(MultiProvider(
     providers: [
@@ -200,7 +200,7 @@ class _MyHomePageState extends State<MyHomePage> {
       case 'Anosu API':
         return anosu;
       case 'MirlKoi API':
-        return mirlKoi;
+        return mirlkoi;
       case 'Lolicon API':
         return lolicon;
       default:

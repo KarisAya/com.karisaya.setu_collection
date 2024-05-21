@@ -1,34 +1,17 @@
-import 'dart:typed_data';
-
-import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 Logger logger = Logger();
 
-Dio dio = Dio();
-
 MethodChannel channel = const MethodChannel(
   'com.karisaya.setu_collection/publicDirectory',
 );
 
-insertImage(Uint8List bytes) {
-  try {
-    channel.invokeMethod('insertImage');
-  } on PlatformException catch (e) {
-    logger.e(e);
-  }
-}
-
 class DownloadManager {
   List<DownloadTask> tasks = [];
-  Future<bool> download(String url) async {
-    var task = DownloadTask(
-        url: url, name: "${url.hashCode}.png", path: "$path/setu_collection");
-    tasks.add(task);
-    task.start();
-    return true;
+  void download(String url) {
+    tasks.add(DownloadTask(url));
   }
 }
 
@@ -37,39 +20,19 @@ DownloadManager downloadManager = DownloadManager();
 typedef ProgressCallback = void Function(int current, int total);
 
 class DownloadTask {
-  DownloadTask({required this.url, required this.name, required this.path});
+  DownloadTask(this.url, {this.title = "未定义图片"}) {
+    status = 1;
+    channel.invokeMethod('insertImage', url).then((file) => (status = 2));
+  }
 
   /// 0 未开始
   ///
-  /// 1 正在下载
+  /// 1 下载中
   ///
   /// 2 已完成
-  ///
-  /// 3 暂停
   int status = 0;
-
   final String url;
-  final String name;
-  final String path;
-  String get savePath => "$path/$name";
-  ProgressCallback? onReceiveProgress;
-
-  void start() {
-    status = 1;
-    dio.download(url, savePath, onReceiveProgress: (int current, int total) {
-      if (onReceiveProgress != null) onReceiveProgress!(current, total);
-    }).then((_) {
-      status = 2;
-    });
-  }
-
-  void stop() {
-    status = 3;
-  }
-
-  void cancel() {
-    status = status == 2 ? 2 : 0;
-  }
+  final String title;
 }
 
 class DownloadProgress extends StatefulWidget {
@@ -81,76 +44,23 @@ class DownloadProgress extends StatefulWidget {
 }
 
 class _DownloadProgressState extends State<DownloadProgress> {
-  double progress = 0.0;
-
-  void listenProgress(int current, int total) {
-    setState(() {
-      progress = current / total;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    Icon icon;
     Widget subtitle;
-    VoidCallback? onPressed;
     switch (widget.task.status) {
       case (0):
-        {
-          icon = const Icon(Icons.file_download);
-          subtitle = const Text('未开始');
-          onPressed = () {};
-        }
+        subtitle = const Text('未开始');
       case (1):
-        {
-          widget.task.onReceiveProgress = listenProgress;
-          icon = const Icon(Icons.pause);
-          subtitle = LinearProgressIndicator(value: progress);
-          onPressed = () {
-            setState(() {
-              widget.task.stop();
-            });
-          };
-        }
+        subtitle = const Text('下载中');
       case (2):
-        {
-          icon = const Icon(Icons.download_done);
-          subtitle = const Text('下载完成');
-        }
-      case (3):
-        {
-          icon = const Icon(Icons.play_arrow);
-          subtitle = const Text('暂停');
-          onPressed = () {
-            setState(() {
-              widget.task.start();
-            });
-          };
-        }
+        subtitle = const Text('下载完成');
       default:
-        {
-          widget.task.onReceiveProgress = null;
-          icon = const Icon(Icons.delete);
-          subtitle = const Text('未知状态');
-        }
+        subtitle = const Text('未知状态');
     }
     return ListTile(
-      title: Text(widget.task.name),
+      title: Text(widget.task.title),
       subtitle: subtitle,
-      trailing: IconButton(
-        icon: icon,
-        onPressed: onPressed,
-      ),
-      onLongPress: () {
-        print("xxx");
-      },
     );
-  }
-
-  @override
-  void dispose() {
-    widget.task.onReceiveProgress = null;
-    super.dispose();
   }
 }
 
@@ -187,7 +97,6 @@ class _DownloadQueuePageState extends State<DownloadQueuePage> {
             key: ValueKey(task),
             direction: DismissDirection.startToEnd,
             onDismissed: (direction) {
-              task.cancel();
               downloadManager.tasks.removeWhere((task) => task.status == 0);
             },
             background: Container(
