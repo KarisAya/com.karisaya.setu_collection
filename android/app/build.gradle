@@ -55,7 +55,3 @@ android {
 flutter {
     source = "../.."
 }
-
-dependencies {
-    implementation 'com.android.tools.compose:compose-preview-renderer:0.0.1-alpha01'
-}
