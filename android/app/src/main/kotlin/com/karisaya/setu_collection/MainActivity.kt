@@ -9,15 +9,16 @@ class MainActivity : FlutterActivity() {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(
                         flutterEngine.dartExecutor.binaryMessenger,
-                        "com.karisaya.setu_collection/mediaAPI"
+                        "com.karisaya.setu_collection/mediaAPI",
                 )
                 .setMethodCallHandler { call, result ->
                     when (call.method) {
-                        "sflutteravePicture" -> {
+                        "savePicture" -> {
                             val file = call.argument<String>("file")
                             if (file != null) {
                                 try {
-                                    saveImageToPublicDir(file)
+                                    saveImageToPictures(file)
+                                    result.success("Image saved successfully.")
                                 } catch (e: Exception) {
                                     result.error(
                                             "Error",
@@ -25,8 +26,8 @@ class MainActivity : FlutterActivity() {
                                             e.localizedMessage
                                     )
                                 }
-                                result.success("Image saved successfully.")
                             } else {
+
                                 result.error("INVALID_ARGUMENT", "Missing file parameter", null)
                             }
                         }
@@ -34,7 +35,13 @@ class MainActivity : FlutterActivity() {
                 }
     }
 
-    private fun saveImageToPublicDir(file: String) {
-        println(file)
+    private fun saveImageToPictures(file: String) {
+        val imageFile = File(file)
+        if (!imageFile.exists()) return
+        val picturesDir =
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+        val destinationFile = File(picturesDir, imageFile.name)
+        imageFile.copyTo(destinationFile, overwrite = true)
+        imageFile.delete()
     }
 }

@@ -10,7 +10,7 @@ MethodChannel channel = const MethodChannel(
 
 Future<String?> savePicture(String file) async {
   try {
-    return await channel.invokeMethod('savePicture', file);
+    return await channel.invokeMethod('savePicture', {"file": file});
   } catch (e) {
     throw PlatformException(
       code: 'UNAVAILABLE',
