@@ -1,9 +1,6 @@
-import "dart:io";
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:path_provider/path_provider.dart';
 import "api/lolicon.dart";
 import "api/anosu.dart";
 import "api/mirlkoi.dart";
@@ -17,16 +14,15 @@ final MirlKoi mirlKoi = MirlKoi();
 final Lolicon lolicon = Lolicon();
 
 void main() async {
-  var results = await Future.wait([
-    Settings.load(),
-    getDownloadsDirectory(),
-  ]);
-  final Settings settings = results[0] as Settings;
-  final Directory directory = results[1] as Directory;
+  // var results = await Future.wait([
+  //   Settings.load(),
+  // ]);
+  // final Settings settings = results[0] as Settings;
+
+  Settings settings = await Settings.load();
   anosu.status.loadSettings(settings);
   mirlKoi.status.loadSettings(settings);
   lolicon.status.loadSettings(settings);
-  downloadManager.path = directory.path;
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (context) => AppSettings(settings)),

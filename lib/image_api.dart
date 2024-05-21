@@ -239,11 +239,18 @@ class ImagePreviewPage extends StatelessWidget {
           },
           onLongPress: () {
             downloadManager
-                .download(api.widget.status.imageUrls[index].highestQuality);
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content:
-                    Text('图片 ${api.widget.status.currentIndex + 1} 已加入下载队列！')));
+                .download(api.widget.status.imageUrls[index].highestQuality)
+                .then((value) {
+              late Text tip;
+              if (value) {
+                tip = Text('图片 ${api.widget.status.currentIndex + 1} 已加入下载队列');
+              } else {
+                tip = Text('图片 ${api.widget.status.currentIndex + 1} 下载失败');
+              }
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(SnackBar(content: tip));
+            });
           },
         );
       },

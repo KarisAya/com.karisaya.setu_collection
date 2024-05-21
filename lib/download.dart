@@ -1,31 +1,33 @@
-import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
+import 'package:logger/logger.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+Logger logger = Logger();
 
 Dio dio = Dio();
 
 MethodChannel channel = const MethodChannel(
-  '"com.karisaya.setu_collection/mediaAPI"',
+  'com.karisaya.setu_collection/publicDirectory',
 );
 
-Future<String?> savePicture(String file) async {
+Future<String?> get getPublicDirectoryPicture async {
   try {
-    return await channel.invokeMethod('savePicture', {"file": file});
-  } catch (e) {
-    throw PlatformException(
-      code: 'UNAVAILABLE',
-      message: 'Failed to get Pictures Directory',
-      details: e,
-    );
+    return await channel.invokeMethod('Picture');
+  } on PlatformException catch (e) {
+    logger.e(e);
+    return null;
   }
 }
 
 class DownloadManager {
-  String? path;
   List<DownloadTask> tasks = [];
-  bool download(String url) {
-    if (path == null) return false;
-    var task = DownloadTask(url: url, name: "${url.hashCode}.jpg", path: path!);
+  Future<bool> download(String url) async {
+    var path = await getPublicDirectoryPicture;
+    if (path == null) {
+      return false;
+    }
+    var task = DownloadTask(url: url, name: "${url.hashCode}.jpg", path: path);
     tasks.add(task);
     task.start();
     return true;
@@ -59,7 +61,6 @@ class DownloadTask {
     dio.download(url, savePath, onReceiveProgress: (int current, int total) {
       if (onReceiveProgress != null) onReceiveProgress!(current, total);
     }).then((_) {
-      savePicture(savePath);
       status = 2;
     });
   }
@@ -168,6 +169,7 @@ class _DownloadQueuePageState extends State<DownloadQueuePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("下载"),
+        backgroundColor: Theme.of(context).colorScheme.primary,
         actions: [
           IconButton(
               onPressed: () {
