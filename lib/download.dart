@@ -10,8 +10,14 @@ MethodChannel channel = const MethodChannel(
 
 class DownloadManager {
   List<DownloadTask> tasks = [];
-  void download(String url) {
-    tasks.add(DownloadTask(url));
+  bool download(String url, String title) {
+    if (tasks.map((e) => e.url).contains(url)) return false;
+    tasks.add(DownloadTask(url, title));
+    return true;
+  }
+
+  void clean() {
+    tasks.removeWhere((task) => task.status == 0 || task.status == 2);
   }
 }
 
@@ -20,7 +26,7 @@ DownloadManager downloadManager = DownloadManager();
 typedef ProgressCallback = void Function(int current, int total);
 
 class DownloadTask {
-  DownloadTask(this.url, {this.title = "未定义图片"}) {
+  DownloadTask(this.url, this.title) {
     status = 1;
     channel.invokeMethod('insertImage', url).then((file) => (status = 2));
   }
@@ -82,8 +88,7 @@ class _DownloadQueuePageState extends State<DownloadQueuePage> {
           IconButton(
               onPressed: () {
                 setState(() {
-                  downloadManager.tasks.removeWhere(
-                      (task) => task.status == 0 || task.status == 2);
+                  downloadManager.clean();
                 });
               },
               icon: const Text("清空列表"))
@@ -91,13 +96,15 @@ class _DownloadQueuePageState extends State<DownloadQueuePage> {
       ),
       body: ListView.builder(
         itemCount: downloadManager.tasks.length,
-        itemBuilder: (BuildContext context, int index) {
+        itemBuilder: (context, index) {
           final task = downloadManager.tasks[index];
           return Dismissible(
             key: ValueKey(task),
             direction: DismissDirection.startToEnd,
             onDismissed: (direction) {
-              downloadManager.tasks.removeWhere((task) => task.status == 0);
+              setState(() {
+                downloadManager.tasks.removeAt(index);
+              });
             },
             background: Container(
               color: Colors.red,

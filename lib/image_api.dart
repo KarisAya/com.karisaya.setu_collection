@@ -59,8 +59,6 @@ abstract class CurrentStatus {
 abstract class ImageAPI extends StatefulWidget {
   const ImageAPI({super.key});
   abstract final CurrentStatus status;
-  // const ImageAPI(this.settings, {super.key});
-  // final Settings settings;
 }
 
 abstract class ImageAPIState<T extends ImageAPI> extends State<T> {
@@ -102,11 +100,12 @@ abstract class ImageAPIState<T extends ImageAPI> extends State<T> {
                 builder: (BuildContext context) {
                   return GestureDetector(
                     onLongPress: () {
-                      downloadManager.download(url.highestQuality);
+                      final imageName =
+                          "${widget.status.key} ${widget.status.currentIndex + 1}";
+                      downloadManager.download(url.highestQuality, imageName);
                       ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text(
-                              '图片 ${widget.status.currentIndex + 1} 已加入下载队列！')));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('$imageName 已加入下载队列！')));
                     },
                     onTap: () {
                       Navigator.push(
@@ -238,12 +237,13 @@ class ImagePreviewPage extends StatelessWidget {
             Navigator.pop(context);
           },
           onLongPress: () {
-            downloadManager
-                .download(api.widget.status.imageUrls[index].highestQuality);
+            final imageName =
+                "${api.widget.status.key} ${api.widget.status.currentIndex + 1}";
+            downloadManager.download(
+                api.widget.status.imageUrls[index].highestQuality, imageName);
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content:
-                    Text('图片 ${api.widget.status.currentIndex + 1} 已加入下载队列')));
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text('$imageName 已加入下载队列')));
           },
         );
       },
