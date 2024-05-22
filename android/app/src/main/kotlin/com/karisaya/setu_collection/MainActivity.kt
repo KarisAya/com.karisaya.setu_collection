@@ -11,12 +11,11 @@ import androidx.core.content.ContextCompat
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import okhttp3.OkHttpClient
+import okhttp3.Request
 
-//import okhttp3.OkHttpClient
-//import okhttp3.Request
-//
-//
-//val httpClient = OkHttpClient()
+
+val httpClient = OkHttpClient()
 
 class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -27,10 +26,16 @@ class MainActivity : FlutterActivity() {
         ).setMethodCallHandler { call, result ->
             when (call.method) {
                 "insertImage" -> {
-                    val it = byteArrayOf(0, 0, 0, 0)
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) saveImage(it)
-                    else saveImageOld(it)
-                    result.success(null)
+                    val request = Request.Builder().url(call.arguments as String).build()
+                    httpClient.newCall(request).execute().use { response ->
+                        if (!response.isSuccessful) {
+                            result.error("NetworkError", "Failed to fetch image", null)
+                        } else response.body?.bytes()?.let {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) saveImage(it)
+                            else saveImageOld(it)
+                            result.success(null)
+                        }
+                    }
                 }
             }
         }
