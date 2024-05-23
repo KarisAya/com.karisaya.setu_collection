@@ -79,68 +79,61 @@ abstract class ImageAPIState<T extends ImageAPI> extends State<T> {
   Widget build(BuildContext context) {
     if (widget.status.imageUrls.length > widget.status.currentIndex) {
       return Column(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          CarouselSlider(
-            carouselController: carouselController,
-            options: CarouselOptions(
-              autoPlay: false,
-              enlargeCenterPage: true,
-              viewportFraction: 0.6,
-              aspectRatio: 1.0,
-              height: MediaQuery.of(context).size.width,
-              initialPage: widget.status.currentIndex,
-              enableInfiniteScroll: false,
-              onPageChanged: (index, reason) {
-                onPageChanged(index);
-              },
-            ),
-            items: widget.status.imageUrls.map((url) {
-              return Builder(
-                builder: (BuildContext context) {
-                  return GestureDetector(
-                    onLongPress: () {
-                      final imageName =
-                          "${widget.status.key} ${widget.status.currentIndex + 1}";
-                      downloadManager.download(url.highestQuality, imageName);
-                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('$imageName 已加入下载队列！')));
-                    },
-                    onTap: () {
-                      showModalBottomSheet(
-                        context: context,
-                        backgroundColor: Colors.black12,
-                        isScrollControlled: true,
-                        builder: (context) => ImagePreviewPage(api: this),
-                      );
-
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //     fullscreenDialog: true,
-                      //     builder: (context) => ImagePreviewPage(api: this),
-                      //   ),
-                      // );
-                    },
-                    child: Center(
-                      child: CachedNetworkImage(
-                        imageUrl: url.url,
-                        placeholder: (context, url) =>
-                            const CircularProgressIndicator(),
-                        errorWidget: (context, url, error) =>
-                            const Icon(Icons.error),
-                      ),
-                    ),
-                  );
+          Expanded(
+            child: CarouselSlider(
+              carouselController: carouselController,
+              options: CarouselOptions(
+                autoPlay: false,
+                enlargeCenterPage: true,
+                viewportFraction: 0.6,
+                aspectRatio: 1.0,
+                height: MediaQuery.of(context).size.width,
+                initialPage: widget.status.currentIndex,
+                enableInfiniteScroll: false,
+                onPageChanged: (index, reason) {
+                  onPageChanged(index);
                 },
-              );
-            }).toList(),
+              ),
+              items: widget.status.imageUrls.map((url) {
+                return Builder(
+                  builder: (BuildContext context) {
+                    return GestureDetector(
+                      onLongPress: () {
+                        final imageName =
+                            "${widget.status.key} ${widget.status.currentIndex + 1}";
+                        downloadManager.download(url.highestQuality, imageName);
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('$imageName 已加入下载队列！')));
+                      },
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          backgroundColor: Colors.black12,
+                          isScrollControlled: true,
+                          builder: (context) => ImagePreviewPage(api: this),
+                        );
+                      },
+                      child: Center(
+                        child: CachedNetworkImage(
+                          imageUrl: url.url,
+                          placeholder: (context, url) =>
+                              const CircularProgressIndicator(),
+                          errorWidget: (context, url, error) =>
+                              const Icon(Icons.error),
+                        ),
+                      ),
+                    );
+                  },
+                );
+              }).toList(),
+            ),
           ),
           GestureDetector(
             child: Text((widget.status.currentIndex + 1).toString(),
-                style: const TextStyle(
-                  color: Colors.grey, // 文本颜色
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.secondary, // 文本颜色
                   fontSize: 24,
                 )),
             onLongPress: () async {
@@ -162,7 +155,8 @@ abstract class ImageAPIState<T extends ImageAPI> extends State<T> {
                 carouselController.animateToPage(numInt - 1);
               });
             },
-          )
+          ),
+          const SizedBox(height: 20),
         ],
       );
     } else if (widget.status.error) {

@@ -21,97 +21,75 @@ class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(
-                        flutterEngine.dartExecutor.binaryMessenger,
-                        "com.karisaya.setu_collection",
-                )
-                .setMethodCallHandler { call, result ->
-                    when (call.method) {
-                        "insertImage" -> {
-                            val request = Request.Builder().url(call.arguments as String).build()
-                            httpClient
-                                    .newCall(request)
-                                    .enqueue(
-                                            object : Callback {
-                                                override fun onFailure(call: Call, e: IOException) =
-                                                        result.error(
-                                                                "NetworkError",
-                                                                "Failed to fetch image",
-                                                                e
-                                                        )
-
-                                                override fun onResponse(
-                                                        call: Call,
-                                                        response: Response
-                                                ) {
-                                                    if (!response.isSuccessful)
-                                                            result.error(
-                                                                    "NetworkError",
-                                                                    "Failed to fetch image",
-                                                                    null
-                                                            )
-                                                    else {
-                                                        response.body?.bytes()?.let {
-                                                            if (Build.VERSION.SDK_INT >=
-                                                                            Build.VERSION_CODES.Q
-                                                            )
-                                                                    saveImage(it)
-                                                            else saveImageOld(it)
-                                                        }
-                                                        result.success(null)
-                                                    }
-                                                }
-                                            }
-                                    )
+            flutterEngine.dartExecutor.binaryMessenger,
+            "com.karisaya.setu_collection",
+        ).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "insertImage" -> {
+                    val request = Request.Builder().url(call.arguments as String).build()
+                    httpClient.newCall(request).enqueue(object : Callback {
+                        override fun onFailure(call: Call, e: IOException) {
+                            result.error(
+                                "NetworkError", "Failed to fetch image", e
+                            )
                         }
-                    }
-                }
-    }
 
-    private fun saveImage(bytes: ByteArray) {
-        val resolver = this.contentResolver
-        val contentValues =
-                ContentValues().apply {
-                    put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
-                    put(MediaStore.Images.Media.MIME_TYPE, "image/png")
-                    put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/setu_collection/")
+                        override fun onResponse(
+                            call: Call, response: Response
+                        ) {
+                            if (response.isSuccessful && response.body?.bytes()?.let {
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) saveImage(it)
+                                    else saveImageOld(it)
+                                } == true) result.success(null)
+                            else result.error(
+                                "NetworkError", "Failed to fetch image", null
+                            )
+                        }
+                    })
                 }
-        resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)?.let { uri ->
-            resolver.openOutputStream(uri)?.use { it.write(bytes) }
+            }
         }
     }
 
-    private fun saveImageOld(bytes: ByteArray) {
-        val requiredPermissions =
-                arrayOf(
-                        Manifest.permission.READ_EXTERNAL_STORAGE,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE
-                )
+    private fun saveImage(bytes: ByteArray): Boolean {
+        val resolver = this.contentResolver
+        val contentValues = ContentValues().apply {
+            put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
+            put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+            put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/setu_collection/")
+        }
+        resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)?.let { uri ->
+            resolver.openOutputStream(uri)?.use {
+                it.write(bytes)
+                return true
+            }
+        }
+        return false
+    }
+
+    private fun saveImageOld(bytes: ByteArray): Boolean {
+        val requiredPermissions = arrayOf(
+            Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE
+        )
 
         fun checkAndRequestPermissions() {
-            val missingPermissions =
-                    requiredPermissions.filter {
-                        ContextCompat.checkSelfPermission(this, it) !=
-                                PackageManager.PERMISSION_GRANTED
-                    }
+            val missingPermissions = requiredPermissions.filter {
+                ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+            }
             if (missingPermissions.isEmpty()) return
             ActivityCompat.requestPermissions(this, missingPermissions.toTypedArray(), 1001)
         }
-
         checkAndRequestPermissions()
         if (requiredPermissions.any {
-                    ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
-                }
-        )
-                return
+                ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+            }) return false
         val file =
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-                        .resolve("/setu_collection/${System.currentTimeMillis()}.png")
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).resolve("setu_collection")
+                .apply { mkdirs() }.resolve("${System.currentTimeMillis()}.png")
         file.writeBytes(bytes)
         MediaScannerConnection.scanFile(
-                this,
-                arrayOf(file.absolutePath),
-                arrayOf("image/png"),
-                null
+            this, arrayOf(file.absolutePath), arrayOf("image/png"), null
         )
+        return true
     }
 }

@@ -26,9 +26,18 @@ DownloadManager downloadManager = DownloadManager();
 typedef ProgressCallback = void Function(int current, int total);
 
 class DownloadTask {
-  DownloadTask(this.url, this.title) {
+  DownloadTask(this.url, this.title, {this.callback}) {
     status = 1;
-    channel.invokeMethod('insertImage', url).then((file) => (status = 2));
+    channel.invokeMethod('insertImage', url).then((file) {
+      status = 2;
+      if (callback != null) callback!();
+    }).catchError(
+      (error) {
+        status = 0;
+        error = error.toString();
+        if (callback != null) callback!();
+      },
+    );
   }
 
   /// 0 未开始
@@ -39,6 +48,8 @@ class DownloadTask {
   int status = 0;
   final String url;
   final String title;
+  String? error;
+  Function? callback;
 }
 
 class DownloadProgress extends StatefulWidget {
@@ -56,10 +67,17 @@ class _DownloadProgressState extends State<DownloadProgress> {
     Widget? trailing;
     switch (widget.task.status) {
       case (0):
-        subtitle = const Text('未开始');
+        subtitle = widget.task.error == null
+            ? const Text('未开始')
+            : Text(widget.task.error!);
       case (1):
         subtitle = const Text('下载中');
         trailing = const CircularProgressIndicator();
+        widget.task.callback = () {
+          if (mounted) {
+            setState(() {});
+          }
+        };
       case (2):
         subtitle = const Text('下载完成');
       default:

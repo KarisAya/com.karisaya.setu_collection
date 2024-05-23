@@ -239,7 +239,7 @@ withCopyright(BuildContext context, Widget child) => Column(children: [
         child: child,
       ),
       Text(
-        'Copyright © 2022 karisaya',
+        'Copyright © 2024 karisaya',
         style: TextStyle(
           color: Theme.of(context).colorScheme.secondary,
           fontSize: 14,
