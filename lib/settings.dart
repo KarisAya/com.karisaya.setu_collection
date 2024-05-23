@@ -9,8 +9,8 @@ Logger logger = Logger();
 class Settings {
   Settings(this.file);
   File file;
-  Color seedColor = Colors.cyan;
-  String api = "Lolicon API";
+  Color seedColor = Colors.blue;
+  String api = "Anosu API";
   bool drawerImage = false;
   String drawerImageUrl = "https://moe.jitsu.top/img/?sort=pc";
   Map<String, Map> apiSettings = {};

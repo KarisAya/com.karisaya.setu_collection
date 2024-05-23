@@ -261,8 +261,8 @@ class _SettingPageState extends State<SettingPage> {
                 itemBuilder: (context) {
                   return [
                     PopupMenuItem(
-                      value: Colors.cyan,
-                      child: colorCard(Colors.cyan),
+                      value: Colors.blue,
+                      child: colorCard(Colors.blue),
                     ),
                     PopupMenuItem(
                       value: Colors.lime,

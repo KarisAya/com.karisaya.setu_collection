@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 Logger logger = Logger();
 
 MethodChannel channel = const MethodChannel(
-  'com.karisaya.setu_collection/publicDirectory',
+  'com.karisaya.setu_collection',
 );
 
 class DownloadManager {
@@ -53,11 +53,13 @@ class _DownloadProgressState extends State<DownloadProgress> {
   @override
   Widget build(BuildContext context) {
     Widget subtitle;
+    Widget? trailing;
     switch (widget.task.status) {
       case (0):
         subtitle = const Text('未开始');
       case (1):
         subtitle = const Text('下载中');
+        trailing = const CircularProgressIndicator();
       case (2):
         subtitle = const Text('下载完成');
       default:
@@ -66,6 +68,14 @@ class _DownloadProgressState extends State<DownloadProgress> {
     return ListTile(
       title: Text(widget.task.title),
       subtitle: subtitle,
+      trailing: trailing,
+      onLongPress: () {
+        Clipboard.setData(ClipboardData(text: widget.task.url));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('图片 URL 已复制到剪贴板'),
+          duration: Duration(seconds: 2),
+        ));
+      },
     );
   }
 }

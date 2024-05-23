@@ -11,9 +11,8 @@ import androidx.core.content.ContextCompat
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
-import okhttp3.OkHttpClient
-import okhttp3.Request
-
+import okhttp3.*
+import okio.IOException
 
 val httpClient = OkHttpClient()
 
@@ -27,20 +26,31 @@ class MainActivity : FlutterActivity() {
             when (call.method) {
                 "insertImage" -> {
                     val request = Request.Builder().url(call.arguments as String).build()
-                    httpClient.newCall(request).execute().use { response ->
-                        if (!response.isSuccessful) {
-                            result.error("NetworkError", "Failed to fetch image", null)
-                        } else response.body?.bytes()?.let {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) saveImage(it)
-                            else saveImageOld(it)
+                    httpClient.newCall(request).enqueue(object : Callback {
+                        override fun onFailure(call: Call, e: IOException) {
+                            result.error(
+                                "NetworkError", "Failed to fetch image", e
+                            )
+                        }
+
+                        override fun onResponse(
+                            call: Call, response: Response
+                        ) {
+                            if (!response.isSuccessful) {
+                                result.error(
+                                    "NetworkError", "Failed to fetch image", null
+                                )
+                            } else response.body?.bytes()?.let {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) saveImage(it)
+                                else saveImageOld(it)
+                            }
                             result.success(null)
                         }
-                    }
+                    })
                 }
             }
         }
     }
-
 
     private fun saveImage(bytes: ByteArray) {
         val resolver = this.contentResolver
@@ -48,12 +58,12 @@ class MainActivity : FlutterActivity() {
         val contentValues = ContentValues().apply {
             put(MediaStore.Images.Media.DATE_TAKEN, time)
             put(MediaStore.Images.Media.MIME_TYPE, "image/png")
-            put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/setu_collection/${time}.png")
+            put(
+                MediaStore.Images.Media.RELATIVE_PATH, "Pictures/setu_collection/"
+            )
         }
         resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)?.let { uri ->
-            resolver.openOutputStream(uri)?.use {
-                it.write(bytes)
-            }
+            resolver.openOutputStream(uri)?.use { it.write(bytes) }
         }
     }
 
@@ -74,9 +84,8 @@ class MainActivity : FlutterActivity() {
         if (requiredPermissions.any {
                 ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
             }) return
-        val file = Environment.getExternalStoragePublicDirectory(
-            Environment.DIRECTORY_PICTURES
-        ).resolve("/setu_collection/${System.currentTimeMillis()}.png")
+        val file = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+            .resolve("/setu_collection/${System.currentTimeMillis()}.png")
         file.writeBytes(bytes)
     }
 }
