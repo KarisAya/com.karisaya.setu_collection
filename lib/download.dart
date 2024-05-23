@@ -71,9 +71,9 @@ class _DownloadProgressState extends State<DownloadProgress> {
       trailing: trailing,
       onLongPress: () {
         Clipboard.setData(ClipboardData(text: widget.task.url));
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('图片 URL 已复制到剪贴板'),
-          duration: Duration(seconds: 2),
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('${widget.task.title} URL 已复制到剪贴板'),
+          duration: const Duration(seconds: 2),
         ));
       },
     );

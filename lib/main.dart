@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:url_launcher/url_launcher.dart';
 import "api/lolicon.dart";
 import "api/anosu.dart";
 import "api/mirlkoi.dart";
@@ -232,6 +234,20 @@ class SettingPage extends StatefulWidget {
   State<SettingPage> createState() => _SettingPageState();
 }
 
+withCopyright(BuildContext context, Widget child) => Column(children: [
+      Expanded(
+        child: child,
+      ),
+      Text(
+        'Copyright © 2022 karisaya',
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.secondary,
+          fontSize: 14,
+        ),
+      ),
+      const SizedBox(height: 20),
+    ]);
+
 class _SettingPageState extends State<SettingPage> {
   @override
   Widget build(BuildContext context) {
@@ -244,103 +260,172 @@ class _SettingPageState extends State<SettingPage> {
           ),
         );
 
+    var settingConsumer =
+        Consumer<AppSettings>(builder: (context, appSettings, child) {
+      return ListView(children: [
+        ListTile(
+          title: const Text("主题色"),
+          trailing: PopupMenuButton<Color>(
+            onSelected: (selectedValue) {
+              appSettings.setSeedColor(selectedValue);
+              appSettings.settings.save();
+            },
+            itemBuilder: (context) {
+              return [
+                PopupMenuItem(
+                  value: Colors.blue,
+                  child: colorCard(Colors.blue),
+                ),
+                PopupMenuItem(
+                  value: Colors.lime,
+                  child: colorCard(Colors.lime),
+                ),
+                PopupMenuItem<Color>(
+                  value: Colors.deepOrange,
+                  child: colorCard(Colors.deepOrange),
+                ),
+                PopupMenuItem(
+                  value: Colors.green,
+                  child: colorCard(Colors.green),
+                ),
+                PopupMenuItem(
+                  value: Colors.black,
+                  child: colorCard(Colors.black),
+                ),
+                PopupMenuItem(
+                  value: Colors.deepPurple,
+                  child: colorCard(Colors.deepPurple),
+                ),
+                PopupMenuItem(
+                  value: Colors.indigo,
+                  child: colorCard(Colors.indigo),
+                ),
+              ];
+            },
+            icon: Container(
+              width: 30.0,
+              height: 30.0,
+              decoration: BoxDecoration(
+                color: appSettings.settings.seedColor,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+        ),
+        ListTile(
+          title: const Text("首页API"),
+          trailing: PopupMenuButton<String>(
+              onSelected: (selectedValue) {
+                setState(() {
+                  appSettings.settings.api = selectedValue;
+                  appSettings.settings.save();
+                });
+              },
+              icon: Text(appSettings.settings.api),
+              itemBuilder: (context) {
+                return [
+                  const PopupMenuItem(
+                    value: "Anosu API",
+                    child: Text("Anosu API"),
+                  ),
+                  const PopupMenuItem(
+                    value: "MirlKoi API",
+                    child: Text("MirlKoi API"),
+                  ),
+                  const PopupMenuItem(
+                    value: "Lolicon API",
+                    child: Text("Lolicon API"),
+                  ),
+                ];
+              }),
+        ),
+        SwitchListTile(
+          title: const Text('开启侧边栏头图'),
+          value: appSettings.settings.drawerImage,
+          onChanged: (bool flag) {
+            setState(() {
+              appSettings.settings.drawerImage = flag;
+              appSettings.settings.save();
+            });
+          },
+          activeColor: Theme.of(context).colorScheme.primary,
+          inactiveThumbColor: Colors.grey,
+          inactiveTrackColor: Colors.grey[300],
+        ),
+        ListTile(
+          title: const Text("关于"),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const AboutPage()),
+            );
+          },
+        ),
+      ]);
+    });
+
     return Scaffold(
         appBar: AppBar(
           title: const Text('设置'),
           backgroundColor: Theme.of(context).colorScheme.primary,
         ),
-        body: Consumer<AppSettings>(builder: (context, appSettings, child) {
-          return ListView(children: [
+        body: withCopyright(context, settingConsumer));
+  }
+}
+
+class AboutPage extends StatelessWidget {
+  const AboutPage({super.key});
+
+  Future<void> openUrl(String url) async {
+    var uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: const Text('关于'),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+        ),
+        body: withCopyright(
+          context,
+          ListView(children: [
             ListTile(
-              title: const Text("主题色"),
-              trailing: PopupMenuButton<Color>(
-                onSelected: (selectedValue) {
-                  appSettings.setSeedColor(selectedValue);
-                  appSettings.settings.save();
-                },
-                itemBuilder: (context) {
-                  return [
-                    PopupMenuItem(
-                      value: Colors.blue,
-                      child: colorCard(Colors.blue),
-                    ),
-                    PopupMenuItem(
-                      value: Colors.lime,
-                      child: colorCard(Colors.lime),
-                    ),
-                    PopupMenuItem<Color>(
-                      value: Colors.deepOrange,
-                      child: colorCard(Colors.deepOrange),
-                    ),
-                    PopupMenuItem(
-                      value: Colors.green,
-                      child: colorCard(Colors.green),
-                    ),
-                    PopupMenuItem(
-                      value: Colors.black,
-                      child: colorCard(Colors.black),
-                    ),
-                    PopupMenuItem(
-                      value: Colors.deepPurple,
-                      child: colorCard(Colors.deepPurple),
-                    ),
-                    PopupMenuItem(
-                      value: Colors.indigo,
-                      child: colorCard(Colors.indigo),
-                    ),
-                  ];
-                },
-                icon: Container(
-                  width: 30.0,
-                  height: 30.0,
-                  decoration: BoxDecoration(
-                    color: appSettings.settings.seedColor,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-            ),
+                title: const Text("Anosu API"),
+                onTap: () {
+                  openUrl("https://docs.anosu.top/");
+                }),
             ListTile(
-              title: const Text("首页API"),
-              trailing: PopupMenuButton<String>(
-                  onSelected: (selectedValue) {
-                    setState(() {
-                      appSettings.settings.api = selectedValue;
-                      appSettings.settings.save();
-                    });
-                  },
-                  icon: Text(appSettings.settings.api),
-                  itemBuilder: (context) {
-                    return [
-                      const PopupMenuItem(
-                        value: "Anosu API",
-                        child: Text("Anosu API"),
-                      ),
-                      const PopupMenuItem(
-                        value: "MirlKoi API",
-                        child: Text("MirlKoi API"),
-                      ),
-                      const PopupMenuItem(
-                        value: "Lolicon API",
-                        child: Text("Lolicon API"),
-                      ),
-                    ];
-                  }),
-            ),
-            SwitchListTile(
-              title: const Text('开启侧边栏头图'),
-              value: appSettings.settings.drawerImage,
-              onChanged: (bool flag) {
-                setState(() {
-                  appSettings.settings.drawerImage = flag;
-                  appSettings.settings.save();
-                });
+                title: const Text("MirlKoi API"),
+                onTap: () {
+                  openUrl("https://iw233.cn/");
+                }),
+            ListTile(
+                title: const Text("Lolicon API"),
+                onTap: () {
+                  openUrl("https://api.lolicon.app/#/");
+                }),
+            ListTile(
+                title: const Text('在 Github 上提交反馈'),
+                onTap: () {
+                  openUrl(
+                      "https://github.com/KarisAya/com.karisaya.setu_collection/issues");
+                }),
+            ListTile(
+              title: const Text('在 QQ 上提交反馈'),
+              onTap: () {
+                Clipboard.setData(const ClipboardData(text: "724024810"));
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(const SnackBar(content: Text('群号已复制到剪切板')));
               },
-              activeColor: Theme.of(context).colorScheme.primary,
-              inactiveThumbColor: Colors.grey,
-              inactiveTrackColor: Colors.grey[300],
             ),
-          ]);
-        }));
+          ]),
+        ));
   }
 }

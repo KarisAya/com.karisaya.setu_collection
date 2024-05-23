@@ -108,13 +108,20 @@ abstract class ImageAPIState<T extends ImageAPI> extends State<T> {
                           SnackBar(content: Text('$imageName 已加入下载队列！')));
                     },
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          fullscreenDialog: true,
-                          builder: (context) => ImagePreviewPage(api: this),
-                        ),
+                      showModalBottomSheet(
+                        context: context,
+                        backgroundColor: Colors.black12,
+                        isScrollControlled: true,
+                        builder: (context) => ImagePreviewPage(api: this),
                       );
+
+                      // Navigator.push(
+                      //   context,
+                      //   MaterialPageRoute(
+                      //     fullscreenDialog: true,
+                      //     builder: (context) => ImagePreviewPage(api: this),
+                      //   ),
+                      // );
                     },
                     child: Center(
                       child: CachedNetworkImage(
@@ -243,7 +250,7 @@ class ImagePreviewPage extends StatelessWidget {
                 api.widget.status.imageUrls[index].highestQuality, imageName);
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
             ScaffoldMessenger.of(context)
-                .showSnackBar(SnackBar(content: Text('$imageName 已加入下载队列')));
+                .showSnackBar(SnackBar(content: Text('$imageName 已加入下载队列！')));
           },
         );
       },
