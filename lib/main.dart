@@ -119,70 +119,68 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            drawerHeader,
-            ListTile(
-                leading: const CircleAvatar(
-                  backgroundImage: CachedNetworkImageProvider(
-                      "https://cdn.jitsu.top/img/home/favicon.ico"),
-                  backgroundColor: Colors.transparent,
-                ),
-                trailing: const Text('Anosu API'),
-                onTap: () {
-                  _changeBody('Anosu API');
-                }),
-            ListTile(
-                leading: const CircleAvatar(
-                  backgroundImage: CachedNetworkImageProvider(
-                      "https://dev.iw233.cn/css/ec43126fgy1h4604r4bk1j21801801kx.jpg"),
-                  backgroundColor: Colors.transparent,
-                ),
-                trailing: const Text('MirlKoi API'),
-                onTap: () {
-                  _changeBody('MirlKoi API');
-                }),
-            ListTile(
-                leading: const CircleAvatar(
-                  backgroundImage: CachedNetworkImageProvider(
-                      "https://avatars.githubusercontent.com/u/24877906?v=4"),
-                  backgroundColor: Colors.transparent,
-                ),
-                trailing: const Text('Lolicon API'),
-                onTap: () {
-                  _changeBody('Lolicon API');
-                }),
-            const Divider(),
-            ListTile(
-                title: const Text("下载队列"),
-                trailing: const Icon(Icons.download),
-                onTap: () {
-                  // 关闭Drawer
-                  Navigator.pop(context);
-                  // 导航到新页面
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const DownloadQueuePage()),
-                  );
-                }),
-            ListTile(
-                title: const Text("设置"),
-                trailing: const Icon(Icons.settings),
-                onTap: () {
-                  // 关闭Drawer
-                  Navigator.pop(context);
-                  // 导航到新页面
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const SettingPage()),
-                  );
-                })
-          ],
-        ),
-      ),
+          child: Column(children: [
+        drawerHeader,
+        Expanded(
+            child: ListView(padding: EdgeInsets.zero, children: [
+          ListTile(
+              leading: const CircleAvatar(
+                backgroundImage: CachedNetworkImageProvider(
+                    "https://cdn.jitsu.top/img/home/favicon.ico"),
+                backgroundColor: Colors.transparent,
+              ),
+              trailing: const Text('Anosu API'),
+              onTap: () {
+                _changeBody('Anosu API');
+              }),
+          ListTile(
+              leading: const CircleAvatar(
+                backgroundImage: CachedNetworkImageProvider(
+                    "https://dev.iw233.cn/css/ec43126fgy1h4604r4bk1j21801801kx.jpg"),
+                backgroundColor: Colors.transparent,
+              ),
+              trailing: const Text('MirlKoi API'),
+              onTap: () {
+                _changeBody('MirlKoi API');
+              }),
+          ListTile(
+              leading: const CircleAvatar(
+                backgroundImage: CachedNetworkImageProvider(
+                    "https://avatars.githubusercontent.com/u/24877906?v=4"),
+                backgroundColor: Colors.transparent,
+              ),
+              trailing: const Text('Lolicon API'),
+              onTap: () {
+                _changeBody('Lolicon API');
+              }),
+        ])),
+        const Divider(),
+        ListTile(
+            title: const Text("下载队列"),
+            trailing: const Icon(Icons.download),
+            onTap: () {
+              // 关闭Drawer
+              Navigator.pop(context);
+              // 导航到新页面
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const DownloadQueuePage()),
+              );
+            }),
+        ListTile(
+            title: const Text("设置"),
+            trailing: const Icon(Icons.settings),
+            onTap: () {
+              // 关闭Drawer
+              Navigator.pop(context);
+              // 导航到新页面
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingPage()),
+              );
+            })
+      ])),
       body: _getBody(title),
     );
   }
