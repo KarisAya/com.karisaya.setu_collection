@@ -9,8 +9,6 @@ import "api/mirlkoi.dart";
 import "download.dart";
 import "settings.dart";
 
-const title = "Setu Collection";
-
 final Anosu anosu = Anosu();
 final MirlKoi mirlkoi = MirlKoi();
 final Lolicon lolicon = Lolicon();
@@ -50,6 +48,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AppSettings>(builder: (context, appSettings, child) {
       return MaterialApp(
+        title: "Setu Collection",
         theme: ThemeData(
           colorScheme:
               ColorScheme.fromSeed(seedColor: appSettings.settings.seedColor),
