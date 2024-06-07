@@ -140,7 +140,7 @@ class _LoliconSettingState extends State<LoliconSetting> {
                       });
                   setState(() {
                     myStatus.preUpdate();
-                    myStatus.tag = tag.split(" ");
+                    myStatus.tag = tag.isEmpty ? [] : tag.split(" ");
                   });
                 },
               ),
